@@ -15,7 +15,8 @@ LEXICON_RU: dict[str, str] = {
                 1. 2 BYN
                 2. 3 BYN
                 3. 4 BYN""",
-    "admin_succes": "Вы успешно зашли в раздел администратора. \nВы берайте раздел для работы:"}
+    "admin_succes": "Вы успешно зашли в раздел администратора. \nВы берайте раздел для работы:",
+    "admin_denied": "Вы не администратор"}
 
 
 LEXICON_COMMANDS_RU: dict[str, str] = {
