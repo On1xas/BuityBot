@@ -32,7 +32,7 @@ async def FSM_create_sign_date_cb(callback: CallbackQuery, state: FSMContext):
     await state.set_state(AdminFSM_create_sign.date)
     print(await state.get_state())
 
-    
+
 @admin_router.message(StateFilter(AdminFSM_create_sign.date))
 async def FSM_create_sign_date(message: Message, state: FSMContext):
     await state.update_data(date=message.text)
@@ -47,4 +47,3 @@ async def FSM_create_sign_date(message: Message, state: FSMContext):
 # async def FSM_create_sign_time_cb(callback: CallbackQuery, state: FSMContext):
 #     print(state.get_data())
 #     await callback.message.edit_text(text=LEXICON_RU["FSM_AdminCreateSign_time"], reply_markup=create_kb_fsm_create_sing_date())
-    
