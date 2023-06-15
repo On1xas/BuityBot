@@ -9,6 +9,7 @@ user_router: Router = Router()
 
 @user_router.message(CommandStart())
 async def start(message: Message):
+    # print(message.json(exclude_none=True))
     await message.answer(text=LEXICON_RU["start"])
 
 
@@ -35,4 +36,3 @@ async def porfolio(message: Message):
 @user_router.message(Command(commands=["price"]))
 async def price(message: Message):
     await message.answer(text=LEXICON_RU["price"])
-    
