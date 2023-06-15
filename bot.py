@@ -2,6 +2,7 @@ import asyncio
 
 
 from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.memory import MemoryStorage
 
 
 from config.config import Config, load_config
@@ -13,8 +14,11 @@ from database.database import start_sqlite
 
 config: Config = load_config(".env")
 
+storage: MemoryStorage = MemoryStorage()
+
 bot: Bot = Bot(config.tg_bot.token)
-dp: Dispatcher = Dispatcher()
+dp: Dispatcher = Dispatcher(storage=storage)
+
 
 async def start_on():
     await start_sqlite()

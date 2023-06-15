@@ -15,12 +15,13 @@ async def start_sqlite():
     # Таблица перечня категорий
     cursor.execute("""CREATE TABLE IF NOT EXISTS category(id INTEGER PRIMARY KEY, category_name TEXT, duration TIME)""")
     # Таблица доступных свободных записей
-    cursor.execute("""CREATE TABLE IF NOT EXISTS work_time(id INTEGER PRIMARY KEY, date DATE, time TIME, category TEXT)""")
+    cursor.execute("""CREATE TABLE IF NOT EXISTS work_time(id INTEGER PRIMARY KEY, date DATE, time TIME)""")
     # Таблица всех пользователей которые записывались
     cursor.execute("""CREATE TABLE IF NOT EXISTS users(user_id INT PRIMARY KEY, user_nickname TEXT, user_name TEXT, phone TEXT, invite_date DATETIME, last_update DATETIME)""")
     # Блэклист пользователей
     cursor.execute("""CREATE TABLE IF NOT EXISTS blacklist_user(user_id INT, description TEXT)""")
     connect.commit()
+
 
 async def create_table_user_history(message: Message):
     # Таблица истории заказов пользователя
