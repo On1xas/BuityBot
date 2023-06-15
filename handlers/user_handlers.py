@@ -35,3 +35,4 @@ async def porfolio(message: Message):
 @user_router.message(Command(commands=["price"]))
 async def price(message: Message):
     await message.answer(text=LEXICON_RU["price"])
+    
