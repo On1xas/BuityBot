@@ -18,7 +18,8 @@ LEXICON_RU: dict[str, str] = {
     "admin_succes": "Вы успешно зашли в раздел администратора. \nВы берайте раздел для работы:",
     "admin_denied": "Вы не администратор",
     "FSM_AdminCreateSign_date": "Введите дату на которую хотите создать записи в формате ДД.ММ.ГГГГ (01.02.2023)",
-    "FSM_AdminCreateSign_time": "Введите время в формате '11:00', если хотите указать сразу несколько записей, введите время одной строкой через запятую. Например '11:00,12:00,13:00"
+    "FSM_AdminCreateSign_time": "Введите время в формате '11:00', если хотите указать сразу несколько записей, введите время одной строкой через запятую. Например '11:00,12:00,13:00",
+    "FSM_AdminCreateSign_finish": "Финиш"
     }
 
 
@@ -39,10 +40,11 @@ LEXICON_KB_ADMIN_MAIN: dict[str, str] = {
     "delete_sign" : "Удалить запись"
 }
 
-LEXICON_KB_ADMIN_FSM_Create_sign_date: dict[str, str] = {
+LEXICON_KB_ADMIN_FSM_back_admin_main: dict[str, str] = {
     "back_main_menu" : "Вернуться в меню администратора"
 }
-
-LEXICON_KB_ADMIN_FSM_Create_sign_time: dict[str, str] = {
-    "back_main_menu" : "Вернуться в меню администратора"
+LEXICON_KB_ADMIN_FSM_CreateSign_edit: dict[str, str] = {
+    "edit_date": "Изменить дату",
+    "edit_time": "Изменить время",
+    "save": "Создать запись"
 }
