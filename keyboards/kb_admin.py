@@ -3,7 +3,7 @@ import datetime
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-
+from keyboards.keyboards import generate_calendar
 from lexicon.lexicon import (LEXICON_KB_ADMIN_MAIN,
                              LEXICON_RU_BUTTON,
                              LEXICON_KB_ADMIN_FSM_CreateSign_edit,
@@ -39,6 +39,8 @@ def create_kb_fsm_CreateSign_edit():
     kb.row(*buttons, width=2)
     kb.row(*button_back_main_menu())
     return kb.as_markup()
+
+
 
 def create_kb_calendar():
     kb=InlineKeyboardBuilder()
