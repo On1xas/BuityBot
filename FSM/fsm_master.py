@@ -2,7 +2,7 @@
 from aiogram.fsm.state import State, StatesGroup
 
 
-class AdminFSM_create_sign(StatesGroup):
+class FSM_Master_create_sign(StatesGroup):
     date = State()
     time = State()
     finish = State()
