@@ -1,6 +1,7 @@
 import asyncio
 
 
+import asyncpg
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
@@ -8,25 +9,36 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from config.config import Config, load_config
 from keyboards.menu import set_main_menu
 from handlers.user_handlers import user_router
-from handlers.admin_handlers import admin_router
-from middleware.out_middleware import ConfigMiddleware
+from handlers.master_handlers import master_router
+from middleware.session_middleware import SessionMiddleware
 
 
-config: Config = load_config(".env")
+async def start_app():
 
-storage: MemoryStorage = MemoryStorage()
+    config: Config = load_config(".env")
 
-bot: Bot = Bot(config.tg_bot.token)
-dp: Dispatcher = Dispatcher(storage=storage)
+    storage: MemoryStorage = MemoryStorage()
+
+    bot: Bot = Bot(config.tg_bot.token)
+    dp: Dispatcher = Dispatcher(storage=storage)
+
+    # Создаём пул подключение к БД
+    create_pool: asyncpg.pool.Pool = await asyncpg.create_pool(user=config.database.user, password=config.database.password, host=config.database.host, database=config.database.database)
+
+    # Регистрируем роутеры
+        ## Регистрируем middleware и передаем в него конфиг и пул к для подключения к БД
+    dp.update.outer_middleware(SessionMiddleware(config=config, connection_pool=create_pool))
+    dp.include_router(master_router)
+    dp.include_router(user_router)
+
+    # Регистрируем кнопку "Меню"
+    await dp.startup.register(set_main_menu)
+
+    # Передаем БОТа в Диспетчер
+    await dp.start_polling(bot)
 
 
-# Регистрируем роутеры
-dp.include_router(admin_router)
-admin_router.message.outer_middleware(ConfigMiddleware(config))
-dp.include_router(user_router)
 
-# Регистрируем кнопку "Меню"
-dp.startup.register(set_main_menu)
 
 if __name__ == "__main__":
-    asyncio.run(dp.run_polling(bot))
+    asyncio.run(start_app())

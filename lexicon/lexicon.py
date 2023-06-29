@@ -15,8 +15,8 @@ LEXICON_RU: dict[str, str] = {
                 1. 2 BYN
                 2. 3 BYN
                 3. 4 BYN""",
-    "admin_succes": "Вы успешно зашли в раздел администратора. \nВы берайте раздел для работы:",
-    "admin_denied": "Вы не администратор",
+    "master_succes": "Вы успешно зашли в раздел мастера. \nВы берайте раздел для работы:",
+    "master_denied": "Вы не мастер",
     "FSM_AdminCreateSign_date": "Выберите дату на которую хотите создать записи:",
     "FSM_AdminCreateSign_time": "Выберите время на которые хотите записи:",
     "FSM_AdminCreateSign_finish": "Финиш"
