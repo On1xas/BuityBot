@@ -3,6 +3,7 @@ from aiogram.types import CallbackQuery, Message
 
 from config.config import Config
 
+
 # Фильтр Callback проверки ID юзера с списком ID мастеров
 class MasterCallbackFilters(BaseFilter):
     is_admin: bool = True

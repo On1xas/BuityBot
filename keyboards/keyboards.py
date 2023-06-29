@@ -6,6 +6,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 
+from lexicon.lexicon import LEXICON_RU_MULTI_SELECT_BUTTON, LEXICON_RU_BUTTON
+from database.database import RequestDB
 
 def kb_calendar(month=datetime.datetime.now().month,
                 year=datetime.datetime.now().year):
@@ -36,4 +38,22 @@ def kb_calendar(month=datetime.datetime.now().month,
         kb.row(*rows, width=7)
     else:
         kb.row(*rows, width=7)
+    return kb.as_markup()
+
+
+async def kb_multiselect_master_sign(state: FSMContext, database: RequestDB):
+    kb = InlineKeyboardBuilder()
+    selected = await state.get_data()
+    main_button = []
+    print(selected)   
+    for time in LEXICON_RU_MULTI_SELECT_BUTTON['times_to_sign']:
+        if selected and time in selected['select_button']:
+            main_button.append(InlineKeyboardButton(text=f"[{time}]",
+                               callback_data=time))
+        else:
+            main_button.append(InlineKeyboardButton(text=f"{time}",
+                               callback_data=time))
+    kb.row(*main_button, width=5)
+    kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON["time_selected"],
+                                callback_data="time_selected"), width=1)
     return kb.as_markup()

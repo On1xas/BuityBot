@@ -17,11 +17,13 @@ LEXICON_RU: dict[str, str] = {
                 3. 4 BYN""",
     "master_succes": "Вы успешно зашли в раздел мастера. \nВы берайте раздел для работы:",
     "master_denied": "Вы не мастер",
-    "FSM_AdminCreateSign_date": "Выберите дату на которую хотите создать записи:",
-    "FSM_AdminCreateSign_time": "Выберите время на которые хотите записи:",
-    "FSM_AdminCreateSign_finish": "Финиш"
-    }
-
+    "FSM_MasterCreateSign_date": "Выберите дату на которую хотите создать записи:",
+    "FSM_MasterCreateSign_time": "Выберите время на которые хотите записи:",
+    "FSM_MasterCreateSign_finish": """<b>Вы хотите создать запись для клиентов:</b>\n
+\tДата: <i><u>{date}</u></i>
+\tВремя: <i><u>{times}</u></i>
+    """
+}
 
 LEXICON_COMMANDS_RU: dict[str, str] = {
                 '/start': 'Главное меню',
@@ -54,5 +56,9 @@ LEXICON_TIME_CONST: dict[str, list[str]] = {
 
 LEXICON_RU_BUTTON: dict[str,str] = {
     "create_template_time": "Создать шаблон",
-    "back_main_menu": "Вернуться в меню администратора"
+    "back_main_menu": "Вернуться в меню администратора",
+    "time_selected": "Выбрать время"
+}
+LEXICON_RU_MULTI_SELECT_BUTTON = {
+    "times_to_sign": ["11:00", "12:00", "13:00", "14:00"]
 }
