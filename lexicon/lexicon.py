@@ -42,9 +42,6 @@ LEXICON_KB_ADMIN_MAIN: dict[str, str] = {
     "delete_sign" : "Удалить запись"
 }
 
-LEXICON_KB_ADMIN_FSM_back_admin_main: dict[str, str] = {
-    "back_main_menu" : "Вернуться в меню администратора"
-}
 LEXICON_KB_ADMIN_FSM_CreateSign_edit: dict[str, str] = {
     "edit_date": "Изменить дату",
     "edit_time": "Изменить время",

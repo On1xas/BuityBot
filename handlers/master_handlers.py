@@ -115,7 +115,7 @@ async def finish_multi_select(callback: CallbackQuery, state: FSMContext, databa
     await state.set_state(FSM_Master_create_sign.finish)
     await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_finish"].format(date=storage['date'], times=select_time_text), reply_markup=create_kb_fsm_CreateSign_edit())
 
-## Обработка состояния Finish. 
+## Обработка состояния Finish. Нажатие кнопок Изменить время, Изменить Дату.
 @master_router.callback_query(lambda callback: callback.data == "edit_date" or callback.data == "edit_time",
                              StateFilter(FSM_Master_create_sign.finish))
 async def FSM_create_sign_edit_status_cb(callback: CallbackQuery, state: FSMContext, database: RequestDB):
@@ -126,10 +126,9 @@ async def FSM_create_sign_edit_status_cb(callback: CallbackQuery, state: FSMCont
         await state.set_state(FSM_Master_create_sign.time)
         await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_time"], reply_markup=await kb_multiselect_master_sign(state=state, database=database))
 
-
-# @admin_router.callback_query(lambda callback: callback.data == "send_date",
-#                              StateFilter(AdminFSM_create_sign.date))
-# async def FSM_create_sign_time_cb(callback: CallbackQuery, state: FSMContext):
-#     print(state.get_data())
-#     await callback.message.edit_text(text=LEXICON_RU["FSM_AdminCreateSign_time"], reply_markup=create_kb_fsm_create_sing_date())
-#    await state.update_data(finish=True)
+## Обработка состояния Finish. Нажание кнопки Создать запись.
+@master_router.callback_query(lambda callback: callback.data == "save",
+                             StateFilter(FSM_Master_create_sign.finish))
+async def FSM_create_sign_time_cb(callback: CallbackQuery, state: FSMContext, database: RequestDB):
+    await state.clear()
+    await callback.message.edit_text(text="Запись создана!", reply_markup=create_kb_master_main())
