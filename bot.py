@@ -27,7 +27,7 @@ async def start_app():
 
     # Регистрируем роутеры
         # Регистрируем middleware и передаем в него конфиг и пул к для подключения к БД
-    dp.update.outer_middleware(SessionMiddleware(config=config, connection_pool=create_pool))
+    dp.update.outer_middleware(SessionMiddleware(config=config, connector=create_pool))
     dp.include_router(master_router)
     dp.include_router(user_router)
 

@@ -22,7 +22,8 @@ LEXICON_RU: dict[str, str] = {
     "FSM_MasterCreateSign_finish": """<b>Вы хотите создать запись для клиентов:</b>\n
 \tДата: <i><u>{date}</u></i>
 \tВремя: <i><u>{times}</u></i>
-    """
+    """,
+    "check_open_sign": """<b>Свободные записи:</b>\n"""
 }
 
 LEXICON_COMMANDS_RU: dict[str, str] = {

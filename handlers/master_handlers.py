@@ -12,7 +12,7 @@ from filters.filter_master import MasterCallbackFilters, MasterMessageFilters
 from filters.filter_calendar import FilterCalendar, FilterDateCalendar
 from filters.filter_multiselect import MultiSelectFilter
 from FSM.fsm_master import FSM_Master_create_sign
-from keyboards.kb_masters import (create_kb_master_main, 
+from keyboards.kb_masters import (create_kb_master_main,
                                 create_kb_fsm_CreateSign_edit,
                                 create_kb_fsm_CreateSign_time)
 from keyboards.keyboards import kb_calendar, kb_multiselect_master_sign
@@ -81,7 +81,7 @@ async def date_calendar(callback: CallbackQuery, state: FSMContext, database: Re
         # Переключаемся в статус Финиш после редактирования. FSM State -> Finish.
         await state.set_state(FSM_Master_create_sign.finish)
         storage = await state.get_data()
-    # Проверяем сколько временных было введено, если больше 1, подготавливаем строку.    
+    # Проверяем сколько временных было введено, если больше 1, подготавливаем строку.
         select_time_text = ", ".join(sorted(list(storage['select_button'])))
         await callback.message.edit_text(text=LEXICON_RU['FSM_MasterCreateSign_finish']. format(date=storage['date'], times=select_time_text), reply_markup=create_kb_fsm_CreateSign_edit())
     else:
@@ -89,7 +89,7 @@ async def date_calendar(callback: CallbackQuery, state: FSMContext, database: Re
         await state.set_state(FSM_Master_create_sign.time)
         await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_time"], reply_markup=await kb_multiselect_master_sign(state=state, database=database))
 
-## Widget MultiSelect. Обработка выбора времени. 
+## Widget MultiSelect. Обработка выбора времени.
 @master_router.callback_query(MultiSelectFilter(), StateFilter(FSM_Master_create_sign.time))
 async def cb_multiselect_time(callback: CallbackQuery, state: FSMContext, database: RequestDB):
     # Выгружаем из памяти хранилище для работы с списком
@@ -132,3 +132,12 @@ async def FSM_create_sign_edit_status_cb(callback: CallbackQuery, state: FSMCont
 async def FSM_create_sign_time_cb(callback: CallbackQuery, state: FSMContext, database: RequestDB):
     await state.clear()
     await callback.message.edit_text(text="Запись создана!", reply_markup=create_kb_master_main())
+
+
+@master_router.callback_query(lambda callback: callback.data == "check_sign", StateFilter(default_state))
+async def check_sign(callback: CallbackQuery, database: RequestDB):
+    open_sign: dict[str, list] = await database.get_opensign()
+    text=LEXICON_RU['check_open_sign']
+    for key, value in open_sign.items():
+        text+="\t\t<u>{date}</u> - <i>{times}</i>\n".format(date=key, times=", ".join(value))
+    await callback.message.edit_text(text=text, reply_markup=create_kb_master_main())
