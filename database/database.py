@@ -78,23 +78,25 @@ service VARCHAR(150))"""
 ###-------------------------------------------------------------------------------
 #Таблица мастеров
 query = """CREATE TABLE IF NOT EXISTS master_users (
-user_id SERIAL PRIMARY KEY,
+user_id INT PRIMARY KEY,
 username VARCHAR(25),
 first_name VARCHAR(25),
 last_name VARCHAR(25))"""
 
 #Таблица шаблона мастера
-query = """CREATE TABLE IF NOT EXISTS master_{master_id}_templates_sign (
+query = """CREATE TABLE IF NOT EXISTS master_templates_sign (
 id_template SERIAL PRIMARY KEY,
+user_id INT NOT NULL,
 name_template VARCHAR(50),
-table_name_value VARCHAR(50)
+is_main_template BOOL DEFAULT False,
+callback_key VARCHAR(25),
+time_template VARCHAR(5) ARRAY
 )"""
+## Добавление шаблона мастера
+query = """INSERT INTO master_templates_sign (user_id, name_template, callback_key, time_template) VALUES ($1, $2, $3, $4)"""
+### Callback_key генерируется -> "edit_template" + id_template
+###-------------------------------------------------------------------------------
 
-#Таблица значений шаблона мастера
-query = """CREATE TABLE IF NOT EXISTS value_template_{master_id}_sign (
-id_template SERIAL PRIMARY KEY REFERENCES master_{master_id}_templates_sign (id_template),
-value VARCHAR(5)
-)"""
 
 
 import asyncpg
@@ -105,13 +107,14 @@ time='11:00'
 async def start():
     connect = await asyncpg.connect(user="topevgn", password="1234", host="localhost", database="bot")
     print(connect)
-    query = """INSERT INTO open_sign (datetime, times) VALUES ($1, $2)"""
+    query = """INSERT INTO master_templates_sign (user_id, name_template, callback_key, time_template) VALUES ($1, $2, $3, $4)"""
 
     date='23/01/2023'
     time='11:00'
+    id=20253994
     print()
     print()
-    await connect.execute(query, datetime.datetime.strptime(date,'%d/%m/%Y').date(), datetime.datetime.strptime(time,'%H:%M').time())
+    await connect.execute(query, id, "Not main", 'edit_template_', ['11:00', '12:00'])
 
     await connect.close()
 
