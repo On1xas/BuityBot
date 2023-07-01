@@ -1,5 +1,5 @@
 import datetime
-
+from copy import deepcopy
 import asyncpg
 from aiogram.types import Message
 
@@ -8,12 +8,41 @@ class RequestDB:
     def __init__(self, connection: asyncpg.pool.Pool):
         self.connect = connection
 
-    async def add_sign(self, date, time):
-        query = """
-        """
+    async def set_opensign(self, date: str, times: list):
+        query = """INSERT INTO open_sign (date, time) VALUES ($1, $2)"""
+        
+        # Запрос данных для проверки на задвоения
+        base = await self.get_opensign()
+        print("Base answer:", base)
+        print("Check date:", date)
+        print("Times:", times)
+        # Проверяем есть ли такая дата уже есть в базе
+        filter_list = []
+        if date in base:
+            print("date in base:", True)
+            # Если дата в базе уже есть, проверяем по списку временных совпадения с уже созданными датами
+            for time in times:
+                print('Check time', time)
+                print('Base[date]:', base[date])
+                # Проверяем есть ли время в списке временных по выбранному дню
+                if time in base[date]:
+                    print('Time in Base[date] - DOUBLICATE')
+                    # Если находим задвоение, удаляем его из списка.
+                else:
+                    filter_list.append(time)
+        else:
+            filter_list = deepcopy(times)
+        # Подготовка параметра класса Дататайм для добавления в табилцу
+        date = datetime.datetime.strptime(date, '%d.%m.%Y')
+        # В цикле добавляем записи
+        for time in filter_list:
+            # Подготовка параметра класса Дататайм для добавления в табилцу
+            time_class = datetime.datetime.strptime(time, '%H:%M')
+            await self.connect.execute(query, date, time_class)
+
 #
     async def get_opensign(self) -> dict[str,list]:
-        query = """SELECT (datetime, times, id) FROM open_sign"""
+        query = """SELECT (date, time, id) FROM open_sign"""
         # Получаем ответ класса Records
         result = await self.connect.fetch(query)
         date_now=datetime.datetime.now()
@@ -30,13 +59,14 @@ class RequestDB:
                     # Проверяем имеется ли ключ с датой в ответе
                     if check_day.strftime('%d.%m.%Y') in answer:
                         # то добавляем время в значения ключа
-                        answer[check_day.strftime('%d.%m.%Y')].append(check_day.strftime('%H.%M'))
+                        answer[check_day.strftime('%d.%m.%Y')].append(check_day.strftime('%H:%M'))
                     # Создаем ключ
-                    answer[check_day.strftime('%d.%m.%Y')]=answer.get(check_day.strftime('%d.%m.%Y'), [check_day.strftime('%H.%M')])
+                    answer[check_day.strftime('%d.%m.%Y')]=answer.get(check_day.strftime('%d.%m.%Y'), [check_day.strftime('%H:%M')])
                 else:
                     # Если данные не актуальные удаляем их из таблицы.
                     drop_query = """DELETE FROM open_sign WHERE id=$1"""
-                    await self.pool.execute(drop_query, row[2])
+                    await self.connect.execute(drop_query, row[2])
+        print(answer)
         return answer
 
 
@@ -91,8 +121,10 @@ date DATE,
 time TIME)"""
 
 # get_opensign Запрос на выборку всех пустых записей начиная с TODAY и TIMENOW
-query = """SELECT (date, time) FROM open_sign WHERE date >= $1 AND time >= $2 ORDER BY ASC"""
+query = """SELECT (datetime, times, id) FROM open_sign"""
 
+# set_opensign Вставка открытых записей в таблицу.
+query = """INSERT INTO open_sign (date, time) VALUES ($1, $2)"""
 
 #Таблица записанных юзеров
 query = """CREATE TABLE IF NOT EXISTS sign (
@@ -124,6 +156,7 @@ is_main_template BOOL DEFAULT False,
 callback_key VARCHAR(25),
 time_template VARCHAR(5) ARRAY
 )"""
+
 ## Добавление шаблона мастера. Callback_key генерируется -> "edit_template_" + id_template
 query = """INSERT INTO master_templates_sign (user_id, name_template, callback_key, time_template) VALUES ($1, $2, $3, $4)"""
 ###

@@ -130,6 +130,9 @@ async def FSM_create_sign_edit_status_cb(callback: CallbackQuery, state: FSMCont
 @master_router.callback_query(lambda callback: callback.data == "save",
                              StateFilter(FSM_Master_create_sign.finish))
 async def FSM_create_sign_time_cb(callback: CallbackQuery, state: FSMContext, database: RequestDB):
+    storage = await state.get_data()
+    print(storage)
+    await database.set_opensign(storage['date'], storage['select_button'])
     await state.clear()
     await callback.message.edit_text(text="Запись создана!", reply_markup=create_kb_master_main())
 
