@@ -2,6 +2,7 @@ import datetime
 from copy import deepcopy
 import asyncpg
 from aiogram.types import Message
+from dateutil.parser import parse
 
 
 class RequestDB:
@@ -10,7 +11,7 @@ class RequestDB:
 
     async def set_opensign(self, date: str, times: list):
         query = """INSERT INTO open_sign (date, time) VALUES ($1, $2)"""
-        
+
         # Запрос данных для проверки на задвоения
         base = await self.get_opensign()
         print("Base answer:", base)
@@ -41,10 +42,19 @@ class RequestDB:
             await self.connect.execute(query, date, time_class)
 
 #
-    async def get_opensign(self) -> dict[str,list]:
-        query = """SELECT (date, time, id) FROM open_sign"""
-        # Получаем ответ класса Records
-        result = await self.connect.fetch(query)
+    async def get_opensign(self, value: str=None) -> dict[str,list]:
+        """
+        send date in parametr - value: str in format  %d.%m.%Y
+        """
+        if value is None:
+            query = """SELECT (date, time, id) FROM open_sign"""
+                    # Получаем ответ класса Records
+            result = await self.connect.fetch(query)
+        else:
+            query = """SELECT (date, time, id) FROM open_sign WHERE date = $1"""
+            # Получаем ответ класса Records
+            value=datetime.datetime.strptime('05.07.2023', '%d.%m.%Y')
+            result = await self.connect.fetch(query, value)
         date_now=datetime.datetime.now()
         # Словарь для ответа
         answer = {}
@@ -170,10 +180,11 @@ import datetime
 
 time='11:00'
 async def start():
-    connect = await asyncpg.connect(user="topevgn", password="1234", host="localhost", database="bot")
-    # print(connect)
-    # query = """INSERT INTO master_templates_sign (user_id, name_template, callback_key, time_template) VALUES ($1, $2, $3, $4)"""
-
+    connect: asyncpg.connect = await asyncpg.connect(user="topevgn", password="1234", host="localhost", database="bot")
+    # # print(connect)
+    # query = """SELECT * FROM public.open_sign ORDER BY id ASC """
+    # data = await connect.fetch(query)
+    # print(tuple(data))
     # date='23/01/2023'
     # time='11:00'
     # id=20253994
@@ -182,8 +193,9 @@ async def start():
     # await connect.execute(query, id, "Not main", 'edit_template_', ['11:00', '12:00'])
 
     # await connect.close()
-    db = RequestDB(connect_pool=connect)
-    result = await db.get_opensign()
+    db = RequestDB(connection=connect)
+    value=datetime.datetime.strptime('05.07.2023', '%d.%m.%Y')
+    result = await db.get_opensign(value=value)
     print(result)
 
 

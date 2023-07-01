@@ -9,9 +9,13 @@ class FSM_Master_create_sign(StatesGroup):
 
 
 
-class UserFSM_sing(StatesGroup):
-    state1 = State()
-    state2 = State()
-    state3 = State()
-    state4 = State()
-    state5 = State()
+class FSM_Master_edit_opensign(StatesGroup):
+    date = State()
+    time = State()
+    finish = State()
+
+
+class FSM_Master_drop_opensign(StatesGroup):
+    date = State()
+    time = State()
+    finish = State()
