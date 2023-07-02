@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 
 from database.database import RequestDB
 from lexicon.lexicon import LEXICON_RU
-from filters.filter_master import MasterCallbackFilters, MasterMessageFilters, SelectFilter
+from filters.filter_master import MasterCallbackFilters, MasterMessageFilters, SelectFilter, EntryTimeFilter
 from filters.filter_calendar import FilterCalendar, FilterDateCalendar
 from filters.filter_multiselect import MultiSelectFilter
 from FSM.fsm_master import FSM_Master_create_sign, FSM_Master_edit_opensign, FSM_Master_drop_opensign
@@ -139,7 +139,7 @@ async def FSM_create_sign_time_cb(callback: CallbackQuery, state: FSMContext, da
     await state.clear()
     await callback.message.edit_text(text="Запись создана!", reply_markup=create_kb_master_main())
 
-## default state. Обработка нажатия кнопки Изменить запись
+## default state. Обработка нажатия кнопки Проверить записи
 @master_router.callback_query(lambda callback: callback.data == "check_sign", StateFilter(default_state))
 async def check_sign(callback: CallbackQuery, database: RequestDB):
     open_sign: dict[str, list] = await database.get_opensign()
@@ -152,7 +152,7 @@ async def check_sign(callback: CallbackQuery, database: RequestDB):
 
 ## FSM_Master_edit_opensign. Обработка нажатия кнопки Изменить запись
 @master_router.callback_query(lambda callback: callback.data == "edit_sign", StateFilter(default_state))
-async def check_sign(callback: CallbackQuery, state: FSMContext, database: RequestDB):
+async def edit_sign(callback: CallbackQuery, state: FSMContext, database: RequestDB):
     # Инициализация переменных для работы с MultiWidget и Calendar
     await state.update_data(month=datetime.datetime.now().month, year=datetime.datetime.now().year)
     await state.update_data(times=[])
@@ -184,7 +184,21 @@ async def date_calendar(callback: CallbackQuery, state: FSMContext, database: Re
 
 ## FSM_Master_edit_opensign - Widget Select. Обработка выбора времени.
 @master_router.callback_query(SelectFilter(), StateFilter(FSM_Master_edit_opensign.time))
-async def cb_multiselect_time(callback: CallbackQuery, state: FSMContext, database: RequestDB):
-
+async def cb_select_time(callback: CallbackQuery, state: FSMContext, database: RequestDB):
+    await state.update_data(old_time=callback.data)
     await state.set_state(FSM_Master_edit_opensign.entry_new_time)
     await callback.message.edit_text(text="Введите время которое хотите изменить")
+
+## FSM_Master_edit_opensign - Обработка ввода нового времени
+@master_router.message(EntryTimeFilter(), StateFilter(FSM_Master_edit_opensign.entry_new_time))
+async def cb_select_entry_new_time(message: Message, state: FSMContext, database: RequestDB):
+    await state.update_data(old_time=message.text)
+    await state.set_state(FSM_Master_edit_opensign.finish)
+    await message.delete()
+    await message.answer(text=f"Запись изменена на {message.text}")
+    await state.clear()
+
+## FSM_Master_edit_opensign - Обработка ввода некоректного текста
+@master_router.message(StateFilter(FSM_Master_edit_opensign.entry_new_time))
+async def cb_select_entry_new_time(message: Message, state: FSMContext, database: RequestDB):
+    await message.answer(text=f"Неверный ввод")

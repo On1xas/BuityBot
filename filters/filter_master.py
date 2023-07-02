@@ -26,3 +26,10 @@ class SelectFilter(BaseFilter):
         if callback.data[:2].isdigit() and 0 <= int(callback.data[:2]) < 24 and callback.data[2] == ":" and callback.data[3:].isdigit() and 0 <= int(callback.data[3:]) < 60:
             return True
         return False
+
+# Фильтр выбор времени в Edit_OpenSign
+class EntryTimeFilter(BaseFilter):
+    async def __call__(self, message: Message) -> bool:
+        if message.text[:2].isdigit() and 0 <= int(message.text[:2]) < 24 and message.text[2] == ":" and message.text[3:].isdigit() and 0 <= int(message.text[3:]) < 60:
+            return True
+        return False
