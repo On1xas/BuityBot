@@ -12,6 +12,7 @@ class FSM_Master_create_sign(StatesGroup):
 class FSM_Master_edit_opensign(StatesGroup):
     date = State()
     time = State()
+    entry_new_time = State()
     finish = State()
 
 

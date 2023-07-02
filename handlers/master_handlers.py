@@ -8,14 +8,14 @@ from aiogram.fsm.context import FSMContext
 
 from database.database import RequestDB
 from lexicon.lexicon import LEXICON_RU
-from filters.filter_master import MasterCallbackFilters, MasterMessageFilters
+from filters.filter_master import MasterCallbackFilters, MasterMessageFilters, SelectFilter
 from filters.filter_calendar import FilterCalendar, FilterDateCalendar
 from filters.filter_multiselect import MultiSelectFilter
 from FSM.fsm_master import FSM_Master_create_sign, FSM_Master_edit_opensign, FSM_Master_drop_opensign
 from keyboards.kb_masters import (create_kb_master_main,
                                 create_kb_fsm_CreateSign_edit,
                                 create_kb_fsm_CreateSign_time)
-from keyboards.keyboards import kb_calendar, kb_multiselect_master_sign
+from keyboards.keyboards import kb_calendar, kb_multiselect_master_sign, kb_select_master_edit_opensign
 
 master_router: Router = Router()
 master_router.callback_query.filter(MasterCallbackFilters())
@@ -40,6 +40,9 @@ async def back_main_menu_cb(callback: CallbackQuery, state: FSMContext):
 @master_router.callback_query(lambda callback: callback.data == "empty")
 async def empty(callback: CallbackQuery):
     await callback.answer()
+
+
+###--------------------------------------------------------CREATE_OPENSIGN-------------------------------------------------------###
 
 
 ## Обработка нажатия кнопки "Создать запись" -> FSM Stage: Entry_Date
@@ -140,17 +143,25 @@ async def FSM_create_sign_time_cb(callback: CallbackQuery, state: FSMContext, da
 @master_router.callback_query(lambda callback: callback.data == "check_sign", StateFilter(default_state))
 async def check_sign(callback: CallbackQuery, database: RequestDB):
     open_sign: dict[str, list] = await database.get_opensign()
+
     text=LEXICON_RU['check_open_sign']
-    for key, value in open_sign.items():
+    for key, value in sorted(open_sign.items(), key=lambda x: datetime.datetime.strptime(x[0], '%d.%m.%Y')):
+        value.sort()
         text+="\t\t<u>{date}</u> - <i>{times}</i>\n".format(date=key, times=", ".join(value))
     await callback.message.edit_text(text=text, reply_markup=create_kb_master_main())
 
 ## FSM_Master_edit_opensign. Обработка нажатия кнопки Изменить запись
 @master_router.callback_query(lambda callback: callback.data == "edit_sign", StateFilter(default_state))
 async def check_sign(callback: CallbackQuery, state: FSMContext, database: RequestDB):
+    # Инициализация переменных для работы с MultiWidget и Calendar
     await state.update_data(month=datetime.datetime.now().month, year=datetime.datetime.now().year)
+    await state.update_data(times=[])
     await state.set_state(FSM_Master_edit_opensign.date)
     await callback.message.edit_text(text="Выберите дату в которой хотите изменить запись", reply_markup=kb_calendar())
+
+
+###--------------------------------------------------------EDIT_OPENSIGN-------------------------------------------------------###
+
 
 ## FSM_Master_edit_opensign - Widget Calendar. Обработка нажатия кнопки даты в календаре. FSM State -> Entry times.
 @master_router.callback_query(FilterDateCalendar(), StateFilter(FSM_Master_edit_opensign.date))
@@ -168,4 +179,12 @@ async def date_calendar(callback: CallbackQuery, state: FSMContext, database: Re
     else:
     # Т.к флаг Финиш отсутсвует в состоянии - значит был первичный ввод. FSM State -> Entry times.
         await state.set_state(FSM_Master_edit_opensign.time)
-        await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_time"], reply_markup=await kb_multiselect_master_sign(state=state, database=database))
+        await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_time"], reply_markup=await kb_select_master_edit_opensign(state=state, database=database))
+
+
+## FSM_Master_edit_opensign - Widget Select. Обработка выбора времени.
+@master_router.callback_query(SelectFilter(), StateFilter(FSM_Master_edit_opensign.time))
+async def cb_multiselect_time(callback: CallbackQuery, state: FSMContext, database: RequestDB):
+
+    await state.set_state(FSM_Master_edit_opensign.entry_new_time)
+    await callback.message.edit_text(text="Введите время которое хотите изменить")

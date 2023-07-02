@@ -57,3 +57,17 @@ async def kb_multiselect_master_sign(state: FSMContext, database: RequestDB):
     kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON["time_selected"],
                                 callback_data="time_selected"), width=1)
     return kb.as_markup()
+
+async def kb_select_master_edit_opensign(state: FSMContext, database: RequestDB):
+    kb = InlineKeyboardBuilder()
+    selected = await state.get_data()
+    print(selected)
+    db_open_sign = await database.get_opensign(value=selected['date'])
+    print(db_open_sign)
+    main_button = []
+    print(selected)
+    for time in db_open_sign[selected['date']]:
+        main_button.append(InlineKeyboardButton(text=f"Изменить запись {selected['date']} - {time}",
+                               callback_data=time))
+    kb.row(*main_button, width=1)
+    return kb.as_markup()

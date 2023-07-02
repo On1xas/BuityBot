@@ -53,7 +53,7 @@ class RequestDB:
         else:
             query = """SELECT (date, time, id) FROM open_sign WHERE date = $1"""
             # Получаем ответ класса Records
-            value=datetime.datetime.strptime('05.07.2023', '%d.%m.%Y')
+            value=datetime.datetime.strptime(value, '%d.%m.%Y')
             result = await self.connect.fetch(query, value)
         date_now=datetime.datetime.now()
         # Словарь для ответа
