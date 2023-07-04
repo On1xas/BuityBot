@@ -9,6 +9,7 @@ from aiogram.fsm.context import FSMContext
 from lexicon.lexicon import LEXICON_RU_MULTI_SELECT_BUTTON, LEXICON_RU_BUTTON
 from database.database import RequestDB
 
+
 def kb_calendar(month=datetime.datetime.now().month,
                 year=datetime.datetime.now().year):
     range_month = calendar.monthrange(month=month, year=year)
@@ -66,8 +67,26 @@ async def kb_select_master_edit_opensign(state: FSMContext, database: RequestDB)
     print(db_open_sign)
     main_button = []
     print(selected)
-    for time in db_open_sign[selected['date']]:
+    for time in sorted(db_open_sign[selected['date']]):
         main_button.append(InlineKeyboardButton(text=f"Изменить запись {selected['date']} - {time}",
                                callback_data=time))
     kb.row(*main_button, width=1)
+    return kb.as_markup()
+
+async def kb_multiselect_delete_master_sign(state: FSMContext, database: RequestDB):
+    kb = InlineKeyboardBuilder()
+    selected = await state.get_data()
+    main_button = []
+    print(selected)
+    db_open_sign = await database.get_opensign(value=selected['date'])
+    for time in sorted(db_open_sign[selected['date']]):
+        if selected and time in selected['times']:
+            main_button.append(InlineKeyboardButton(text=f"Удалить запись [{time}]",
+                                callback_data=time))
+        else:
+            main_button.append(InlineKeyboardButton(text=f"Удалить запись  {time}",
+                                callback_data=time))
+    kb.row(*main_button, width=1)
+    kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON["time_selected"],
+                                    callback_data="time_selected"), width=1)
     return kb.as_markup()

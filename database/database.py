@@ -1,9 +1,7 @@
 import datetime
 from copy import deepcopy
 import asyncpg
-from aiogram.types import Message
-from dateutil.parser import parse
-
+from aiogram.fsm.context import FSMContext
 
 class RequestDB:
     def __init__(self, connection: asyncpg.pool.Pool):
@@ -79,7 +77,40 @@ class RequestDB:
         print(answer)
         return answer
 
+    async def update_opensign(self, date_update: str, old_time: str, new_time: str) -> bool:                   #### ДОБАВИТЬ ПРОВЕРКУ НА ЗАДВОЕНИЕ
+        '''GET:
+                    date_update: str in format %d.%m.%Y
+                    old_time: str in format %H:%M
+                    new_time: str in format %H:%M
 
+                return status update:
+                    True - Good
+                    False -Dublicate new_time in open_sign table or Exceptions'''
+
+        date = datetime.datetime.strptime(date_update, '%d.%m.%Y')
+        old_time = datetime.datetime.strptime(old_time, '%H:%M')
+        new_t = datetime.datetime.strptime(new_time, '%H:%M')
+
+        query = """UPDATE open_sign SET time = $3 WHERE date = $1 and time = $2"""
+        actual_time = await self.get_opensign(date_update)
+        print
+        print("DB ACTUALLY", actual_time)
+        if new_time not in actual_time[date_update]:
+            await self.connect.execute(query, date, old_time, new_t)
+            return True
+        else:
+            print('UPDATE DUBLICATE, ERROR')
+            return False
+
+
+    async def delete_opensign(self, date: str, time: str):
+
+        query = """DELETE FROM open_sign WHERE date = $1 AND time = $2"""
+        
+        date = datetime.datetime.strptime(date, '%d.%m.%Y')
+        time = datetime.datetime.strptime(time, '%H:%M')
+
+        await self.connect.execute(query, date, time)
 
 
 # async def start_sqlite():
@@ -146,8 +177,8 @@ username_ru VARCHAR(25),
 phone VARCHAR(13),
 service VARCHAR(150))"""
 
-
-
+# Всенение изменения в записи
+query = """UPDATE open_sign SET time = '$3 WHERE date = $1 and time = $2"""
 
 ###-------------------------------------------------------------------------------
 #Таблица мастеров
@@ -179,25 +210,15 @@ import asyncio
 import datetime
 
 time='11:00'
-async def start():
-    connect: asyncpg.connect = await asyncpg.connect(user="topevgn", password="1234", host="localhost", database="bot")
-    # # print(connect)
-    # query = """SELECT * FROM public.open_sign ORDER BY id ASC """
-    # data = await connect.fetch(query)
-    # print(tuple(data))
-    # date='23/01/2023'
-    # time='11:00'
-    # id=20253994
-    # print()
-    # print()
-    # await connect.execute(query, id, "Not main", 'edit_template_', ['11:00', '12:00'])
 
-    # await connect.close()
-    db = RequestDB(connection=connect)
-    value=datetime.datetime.strptime('05.07.2023', '%d.%m.%Y')
-    result = await db.get_opensign(value=value)
-    print(result)
+async def start(date_update, old_time, new_time):
+    connect: asyncpg.connect = await asyncpg.connect(user="topevgn", password="1234", host="localhost", database="bot")
+    date_update = datetime.datetime.strptime(date_update, '%d.%m.%Y')
+    old_time = datetime.datetime.strptime(old_time, '%H:%M')
+    new_time = datetime.datetime.strptime(new_time, '%H:%M') 
+    query = """UPDATE open_sign SET time = $3 WHERE date = $1 and time = $2"""
+    await connect.execute(query, date_update, old_time, new_time)
 
 
 if __name__ == "__main__":
-    asyncio.run(start())
+    asyncio.run(start("06.07.2023", "12:00", "12:12"))
