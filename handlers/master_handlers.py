@@ -14,7 +14,7 @@ from filters.filter_multiselect import MultiSelectFilter
 from FSM.fsm_master import FSM_Master_create_sign, FSM_Master_edit_opensign, FSM_Master_drop_opensign
 from keyboards.kb_masters import (create_kb_master_main,
                                 create_kb_fsm_CreateSign_edit,
-                                create_kb_fsm_CreateSign_time)
+                                kb_master_back_main_menu)
 from keyboards.keyboards import kb_calendar, kb_multiselect_master_sign, kb_select_master_edit_opensign, kb_multiselect_delete_master_sign
 
 master_router: Router = Router()
@@ -168,17 +168,13 @@ async def date_calendar(callback: CallbackQuery, state: FSMContext, database: Re
     # Записываем дату в FSM
     await state.update_data(date=callback.data)
     # Проверяем, было редактирование данных или первичный ввод.
-    if "finish" in await state.get_data():
-        # Переключаемся в статус Финиш после редактирования. FSM State -> Finish.
-        await state.set_state(FSM_Master_edit_opensign.finish)
-        storage = await state.get_data()
-    # Проверяем сколько временных было введено, если больше 1, подготавливаем строку.
-        select_time_text = ", ".join(sorted(list(storage['times'])))
-        await callback.message.edit_text(text=LEXICON_RU['FSM_MasterCreateSign_finish']. format(date=storage['date'], times=select_time_text), reply_markup=create_kb_fsm_CreateSign_edit())
-    else:
-    # Т.к флаг Финиш отсутсвует в состоянии - значит был первичный ввод. FSM State -> Entry times.
+    if await database.get_opensign(value=callback.data):
+        # FSM State -> Entry times.
         await state.set_state(FSM_Master_edit_opensign.time)
         await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_time"], reply_markup=await kb_select_master_edit_opensign(state=state, database=database))
+    else:
+        # Выдаём кнопку возрат в главное меню
+        await callback.message.edit_text(text="К сожалению на данную дату нет запланированных записей", reply_markup=kb_master_back_main_menu())
 
 
 ## FSM_Master_edit_opensign - Widget Select. Обработка выбора времени.
@@ -224,14 +220,17 @@ async def FSM_drop_opensign_cb(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_date"], reply_markup=kb_calendar())
     await state.set_state(FSM_Master_drop_opensign.date)
 
-## FSM_Master_drop_opensign  Widget Calendar. Обработка нажатия кнопки даты в календаре. FSM State -> Entry times.
+## FSM_Master_drop_opensign  Widget Calendar. Обработка нажатия кнопки даты в календаре. FSM State -> Entry times.      #### СДЕЛАТЬ ПРОВЕРКУ НА ПРИСУТСВИЕ ДАТЫ
 @master_router.callback_query(FilterDateCalendar(), StateFilter(FSM_Master_drop_opensign.date))
 async def date_calendar_drop_opensign(callback: CallbackQuery, state: FSMContext, database: RequestDB):
-    # Записываем дату в FSM
-    await state.update_data(date=callback.data)
-    # FSM State -> Entry times.
-    await state.set_state(FSM_Master_drop_opensign.time)
-    await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_time"], reply_markup=await kb_multiselect_delete_master_sign(state=state, database=database))
+    if await database.get_opensign(value=callback.data):
+        # Записываем дату в FSM
+        await state.update_data(date=callback.data)
+        # FSM State -> Entry times.
+        await state.set_state(FSM_Master_drop_opensign.time)
+        await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_time"], reply_markup=await kb_multiselect_delete_master_sign(state=state, database=database))
+    else:
+        await callback.message.edit_text(text="Не записей на этот день", reply_markup=kb_master_back_main_menu())
 
 ## FSM_Master_drop_opensign Widget MultiSelect. Обработка выбора времени.
 @master_router.callback_query(MultiSelectFilter(), StateFilter(FSM_Master_drop_opensign.time))
@@ -245,8 +244,12 @@ async def cb_multiselect_time(callback: CallbackQuery, state: FSMContext, databa
         storage['times'].remove(callback.data)
     # Возвращаем обновленные данные в хранилище
     await state.set_data(storage)
+    # Формируем текст в записимости от выбранных кнопок
+    if storage['times']:
+        text = ", ".join(sorted(list(storage['times'])))
+    else:
+        text = "Нет выбранных записей"
     # Генерируем обновленную клавиатуру
-    text = ", ".join(sorted(list(storage['times'])))
     await callback.message.edit_text(text=text, reply_markup=await kb_multiselect_delete_master_sign(state=state, database=database))
 
 ## FSM_Master_drop_opensign Widget MultiSelect. Обработка нажатия кнопки подтверждения выбора времени. FSM State -> Finish

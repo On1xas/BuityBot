@@ -8,7 +8,10 @@ from lexicon.lexicon import (LEXICON_KB_ADMIN_MAIN,
                              LEXICON_KB_ADMIN_FSM_CreateSign_edit,
                              LEXICON_TIME_CONST)
 
-
+def kb_master_back_main_menu():
+    kb = InlineKeyboardBuilder()
+    kb.row(*button_back_main_menu())
+    return kb.as_markup()
 
 # Главное меню для Мастер юзера
 def create_kb_master_main():

@@ -8,6 +8,8 @@ from aiogram.fsm.context import FSMContext
 
 from lexicon.lexicon import LEXICON_RU_MULTI_SELECT_BUTTON, LEXICON_RU_BUTTON
 from database.database import RequestDB
+from keyboards.kb_masters import button_back_main_menu
+
 
 
 def kb_calendar(month=datetime.datetime.now().month,
@@ -62,15 +64,13 @@ async def kb_multiselect_master_sign(state: FSMContext, database: RequestDB):
 async def kb_select_master_edit_opensign(state: FSMContext, database: RequestDB):
     kb = InlineKeyboardBuilder()
     selected = await state.get_data()
-    print(selected)
     db_open_sign = await database.get_opensign(value=selected['date'])
-    print(db_open_sign)
     main_button = []
-    print(selected)
     for time in sorted(db_open_sign[selected['date']]):
-        main_button.append(InlineKeyboardButton(text=f"Изменить запись {selected['date']} - {time}",
-                               callback_data=time))
+            main_button.append(InlineKeyboardButton(text=f"Изменить запись {selected['date']} - {time}",
+                                callback_data=time))
     kb.row(*main_button, width=1)
+    kb.row(*button_back_main_menu())
     return kb.as_markup()
 
 async def kb_multiselect_delete_master_sign(state: FSMContext, database: RequestDB):
