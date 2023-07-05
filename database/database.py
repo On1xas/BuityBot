@@ -12,22 +12,14 @@ class RequestDB:
 
         # Запрос данных для проверки на задвоения
         base = await self.get_opensign()
-        print("Base answer:", base)
-        print("Check date:", date)
-        print("Times:", times)
         # Проверяем есть ли такая дата уже есть в базе
         filter_list = []
         if date in base:
-            print("date in base:", True)
             # Если дата в базе уже есть, проверяем по списку временных совпадения с уже созданными датами
             for time in times:
-                print('Check time', time)
-                print('Base[date]:', base[date])
                 # Проверяем есть ли время в списке временных по выбранному дню
-                if time in base[date]:
-                    print('Time in Base[date] - DOUBLICATE')
-                    # Если находим задвоение, удаляем его из списка.
-                else:
+                if time not in base[date]:
+                    # Если время не задвоено0 добавляем его в список
                     filter_list.append(time)
         else:
             filter_list = deepcopy(times)
@@ -49,19 +41,21 @@ class RequestDB:
                     # Получаем ответ класса Records
             result = await self.connect.fetch(query)
         else:
+
             query = """SELECT (date, time, id) FROM open_sign WHERE date = $1"""
             # Получаем ответ класса Records
             value=datetime.datetime.strptime(value, '%d.%m.%Y')
             result = await self.connect.fetch(query, value)
+
         date_now=datetime.datetime.now()
         # Словарь для ответа
-        answer = {}
+        answer: dict[str, list] = {}
         # Распаковываем список строк
         for res in result:
             # Распаковываем кортеж с значениями в строках методом values()
             for row in res.values():
                 # Формируем переменную класса Datetime для сравнения
-                check_day=datetime.datetime(year=row[0].year, month=row[0].month, day=row[0].day, hour=row[1].hour, minute=row[1].minute)
+                check_day = datetime.datetime(year=row[0].year, month=row[0].month, day=row[0].day, hour=row[1].hour, minute=row[1].minute)
                 # Проверяем актуальные ли данные в строке
                 if date_now <= check_day:
                     # Проверяем имеется ли ключ с датой в ответе
@@ -74,7 +68,6 @@ class RequestDB:
                     # Если данные не актуальные удаляем их из таблицы.
                     drop_query = """DELETE FROM open_sign WHERE id=$1"""
                     await self.connect.execute(drop_query, row[2])
-        print(answer)
         return answer
 
     async def update_opensign(self, date_update: str, old_time: str, new_time: str) -> bool:                   #### ДОБАВИТЬ ПРОВЕРКУ НА ЗАДВОЕНИЕ
@@ -93,14 +86,10 @@ class RequestDB:
 
         query = """UPDATE open_sign SET time = $3 WHERE date = $1 and time = $2"""
         actual_time = await self.get_opensign(date_update)
-        print
-        print("DB ACTUALLY", actual_time)
         if new_time not in actual_time[date_update]:
             await self.connect.execute(query, date, old_time, new_t)
             return True
-        else:
-            print('UPDATE DUBLICATE, ERROR')
-            return False
+        return False
 
 
     async def delete_opensign(self, date: str, time: str):
@@ -111,6 +100,28 @@ class RequestDB:
         time = datetime.datetime.strptime(time, '%H:%M')
 
         await self.connect.execute(query, date, time)
+
+    async def create_template_opensign(self):
+        pass
+
+    async def update_template_opensign(self):
+        pass
+
+    async def get_template_opensign(self, master_user_id: int):
+        
+        query = """SELECT * FROM master_templates_sign WHERE user_id = $1"""
+
+        result = await self.connect.fetch(query, master_user_id)
+        answer = {}
+        keys = ["id", "is_main", "callback_key", "times"]
+        for res in result:
+            row = (tuple(res))
+            answer[row[2]] = answer.get(row[2],(dict(zip(keys, (row[0], row[3], row[4]+str(row[0]), row[5])))))
+
+        return answer
+
+    async def delete_template_opensign():
+        pass
 
 
 # async def start_sqlite():
@@ -211,14 +222,17 @@ import datetime
 
 time='11:00'
 
-async def start(date_update, old_time, new_time):
+async def start():
     connect: asyncpg.connect = await asyncpg.connect(user="topevgn", password="1234", host="localhost", database="bot")
-    date_update = datetime.datetime.strptime(date_update, '%d.%m.%Y')
-    old_time = datetime.datetime.strptime(old_time, '%H:%M')
-    new_time = datetime.datetime.strptime(new_time, '%H:%M') 
-    query = """UPDATE open_sign SET time = $3 WHERE date = $1 and time = $2"""
-    await connect.execute(query, date_update, old_time, new_time)
+    # date_update = datetime.datetime.strptime(date_update, '%d.%m.%Y')
+    # old_time = datetime.datetime.strptime(old_time, '%H:%M')
+    # new_time = datetime.datetime.strptime(new_time, '%H:%M') 
+    # query = """UPDATE open_sign SET time = $3 WHERE date = $1 and time = $2"""
+    # await connect.execute(query, date_update, old_time, new_time)
+
+    db=RequestDB(connection=connect)
+    print(await db.get_template_opensign(master_user_id=20253994))
 
 
 if __name__ == "__main__":
-    asyncio.run(start("06.07.2023", "12:00", "12:12"))
+    asyncio.run(start())

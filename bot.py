@@ -26,8 +26,9 @@ async def start_app():
     create_pool: asyncpg.pool.Pool = await asyncpg.create_pool(user=config.database.user, password=config.database.password, host=config.database.host, database=config.database.database)
 
     # Регистрируем роутеры
-        # Регистрируем middleware и передаем в него конфиг и пул к для подключения к БД
-    dp.update.outer_middleware(SessionMiddleware(config=config, connector=create_pool))
+    # Регистрируем middleware и передаем в него конфиг и пул к для подключения к БД
+    dp.update.outer_middleware(SessionMiddleware(
+        config=config, connector=create_pool))
     dp.include_router(master_router)
     dp.include_router(user_router)
 

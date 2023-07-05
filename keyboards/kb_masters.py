@@ -2,11 +2,17 @@ import datetime
 
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.fsm.context import FSMContext
+
 
 from lexicon.lexicon import (LEXICON_KB_ADMIN_MAIN,
                              LEXICON_RU_BUTTON,
                              LEXICON_KB_ADMIN_FSM_CreateSign_edit,
-                             LEXICON_TIME_CONST)
+                             LEXICON_TIME_CONST,
+                             LEXICON_RU_MULTI_SELECT_BUTTON)
+from database.database import RequestDB
+
+
 
 def kb_master_back_main_menu():
     kb = InlineKeyboardBuilder()
@@ -40,3 +46,128 @@ def create_kb_fsm_CreateSign_edit():
     kb.row(*buttons, width=2)
     kb.row(*button_back_main_menu())
     return kb.as_markup()
+
+
+async def kb_multiselect_master_sign(state: FSMContext, database: RequestDB):
+    kb = InlineKeyboardBuilder()
+    selected = await state.get_data()
+    main_button = []
+
+    for time in LEXICON_RU_MULTI_SELECT_BUTTON['times_to_sign']:
+        if selected and time in selected['times']:
+            main_button.append(InlineKeyboardButton(text=f"[{time}]",
+                               callback_data=time))
+        else:
+            main_button.append(InlineKeyboardButton(text=f"{time}",
+                               callback_data=time))
+    kb.row(*main_button, width=5)
+    kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON["time_selected"],
+                                callback_data="time_selected"), width=1)
+    return kb.as_markup()
+
+async def kb_select_master_edit_opensign(state: FSMContext, database: RequestDB):
+    kb = InlineKeyboardBuilder()
+    selected = await state.get_data()
+    db_open_sign = await database.get_opensign(value=selected['date'])
+    main_button = []
+    for time in sorted(db_open_sign[selected['date']]):
+            main_button.append(InlineKeyboardButton(text=f"Изменить запись {selected['date']} - {time}",
+                                callback_data=time))
+    kb.row(*main_button, width=1)
+    kb.row(*button_back_main_menu())
+    return kb.as_markup()
+
+async def kb_multiselect_delete_master_sign(state: FSMContext, database: RequestDB):
+    kb = InlineKeyboardBuilder()
+    selected = await state.get_data()
+    main_button = []
+    db_open_sign = await database.get_opensign(value=selected['date'])
+    for time in sorted(db_open_sign[selected['date']]):
+        if selected and time in selected['times']:
+            main_button.append(InlineKeyboardButton(text=f"Удалить запись [{time}]",
+                                callback_data=time))
+        else:
+            main_button.append(InlineKeyboardButton(text=f"Удалить запись  {time}",
+                                callback_data=time))
+    kb.row(*main_button, width=1)
+    kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON["time_selected"],
+                                    callback_data="time_selected"), width=1)
+    return kb.as_markup()
+
+
+
+async def kb_multiselect_start_create_opensign(main_template: dict, state: FSMContext):
+    
+    kb = InlineKeyboardBuilder()
+
+    selected = await state.get_data()
+    main_button = []
+    #Кнопка использовать шаблоны
+    kb.row(*[InlineKeyboardButton(text="Использовать шаблон", callback_data='use_template')])
+    #Кнопки из стандартного шаблона
+    for time in sorted(main_template['times']):
+        if selected and time in selected['times']:
+            main_button.append(InlineKeyboardButton(text=f"[{time}]",
+                                callback_data=time))
+        else:
+            main_button.append(InlineKeyboardButton(text=f"{time}",
+                                callback_data=time))
+    kb.row(*main_button, width=1)
+    #Кнопка Ввести время самому
+    kb.row(*[InlineKeyboardButton(text="Ввести время вручную", callback_data='entry_manually')])
+    # Кнопка выйти в главное меню
+    kb.row(*button_back_main_menu())
+
+    return kb.as_markup()
+
+
+async def kb_multiselect_templates_create_opensign():
+    #3 Кнопки - Создать шаблон, Удалить шаблон, Изменить шаблон
+    #Изменить шаблон по умолчанию
+    #Кнопки - перечень созданных шаблонов
+    #Кнопка вернуся в Мультиселект
+    #Кнопка вернуть в главное меню
+    pass
+
+async def kb_multiselect_create_templates_create_opensign():
+    # ЗАПРОС НА ВВЕДЕНИЕ ШАБЛОНА текстом
+    #Кнопка вернуся в меню шаблонов
+    #Кнопка вернуть в главное меню
+    pass
+async def kb_multiselect_delete_templates_create_opensign():
+    # Кнопки существиющих шаблонов
+    #Кнопка вернуся в меню шаблонов
+    #Кнопка вернуть в главное меню
+    pass
+async def kb_multiselect_delete_check_templates_create_opensign():
+    # Кнопки Да, Нет - подстверждение удаления шаблона
+    #Кнопка вернуся в меню шаблонов
+    #Кнопка вернуть в главное меню
+    pass
+async def kb_multiselect_edit_templates_create_opensign():
+    # Кнопки существиющих шаблонов
+    #Кнопка вернуся в меню шаблонов
+    #Кнопка вернуть в главное меню
+    pass
+async def kb_multiselect_edit_entrynew_templates_create_opensign():
+    # ЗАПРОС НА ВВЕДЕНИЕ ШАБЛОНА текстом
+    #Кнопка вернуся в меню шаблонов
+    #Кнопка вернуть в главное меню    
+    pass
+async def kb_multiselect_edit_check_templates_create_opensign():
+    # Кнопки Да, Нет - подстверждение изменения шаблона
+    #Кнопка вернуся в меню шаблонов
+    #Кнопка вернуть в главное меню
+    pass
+
+async def kb_multiselect_editmain_templates_create_opensign():
+    # Кнопки существиющих шаблонов
+    #Кнопка вернуся в меню шаблонов
+    #Кнопка вернуть в главное меню
+    pass
+
+async def kb_multiselect_editmain_check_templates_create_opensign():
+    # Кнопки Да, Нет - подстверждение изменения шаблона
+    #Кнопка вернуся в меню шаблонов
+    #Кнопка вернуть в главное меню
+    pass
