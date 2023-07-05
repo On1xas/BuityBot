@@ -96,25 +96,29 @@ async def kb_multiselect_delete_master_sign(state: FSMContext, database: Request
 
 
 
-async def kb_multiselect_start_create_opensign(main_template: dict, state: FSMContext):
-    
+async def kb_multiselect_start_create_opensign(state: FSMContext):
+
     kb = InlineKeyboardBuilder()
 
     selected = await state.get_data()
+    print(selected)
     main_button = []
     #Кнопка использовать шаблоны
     kb.row(*[InlineKeyboardButton(text="Использовать шаблон", callback_data='use_template')])
     #Кнопки из стандартного шаблона
-    for time in sorted(main_template['times']):
-        if selected and time in selected['times']:
-            main_button.append(InlineKeyboardButton(text=f"[{time}]",
-                                callback_data=time))
-        else:
-            main_button.append(InlineKeyboardButton(text=f"{time}",
-                                callback_data=time))
-    kb.row(*main_button, width=1)
+    if selected['main_template']:
+        for time in sorted(selected['main_template']['times']):
+            if selected and time in selected['select_times']:
+                main_button.append(InlineKeyboardButton(text=f"[{time}]",
+                                    callback_data=time))
+            else:
+                main_button.append(InlineKeyboardButton(text=f"{time}",
+                                    callback_data=time))
+        kb.row(*main_button, width=8)
     #Кнопка Ввести время самому
     kb.row(*[InlineKeyboardButton(text="Ввести время вручную", callback_data='entry_manually')])
+    kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON["time_selected"],
+                                    callback_data="time_selected"), width=1)
     # Кнопка выйти в главное меню
     kb.row(*button_back_main_menu())
 
@@ -152,7 +156,7 @@ async def kb_multiselect_edit_templates_create_opensign():
 async def kb_multiselect_edit_entrynew_templates_create_opensign():
     # ЗАПРОС НА ВВЕДЕНИЕ ШАБЛОНА текстом
     #Кнопка вернуся в меню шаблонов
-    #Кнопка вернуть в главное меню    
+    #Кнопка вернуть в главное меню
     pass
 async def kb_multiselect_edit_check_templates_create_opensign():
     # Кнопки Да, Нет - подстверждение изменения шаблона

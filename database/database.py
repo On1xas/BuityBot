@@ -95,7 +95,7 @@ class RequestDB:
     async def delete_opensign(self, date: str, time: str):
 
         query = """DELETE FROM open_sign WHERE date = $1 AND time = $2"""
-        
+
         date = datetime.datetime.strptime(date, '%d.%m.%Y')
         time = datetime.datetime.strptime(time, '%H:%M')
 
@@ -108,7 +108,7 @@ class RequestDB:
         pass
 
     async def get_template_opensign(self, master_user_id: int):
-        
+
         query = """SELECT * FROM master_templates_sign WHERE user_id = $1"""
 
         result = await self.connect.fetch(query, master_user_id)
@@ -226,7 +226,7 @@ async def start():
     connect: asyncpg.connect = await asyncpg.connect(user="topevgn", password="1234", host="localhost", database="bot")
     # date_update = datetime.datetime.strptime(date_update, '%d.%m.%Y')
     # old_time = datetime.datetime.strptime(old_time, '%H:%M')
-    # new_time = datetime.datetime.strptime(new_time, '%H:%M') 
+    # new_time = datetime.datetime.strptime(new_time, '%H:%M')
     # query = """UPDATE open_sign SET time = $3 WHERE date = $1 and time = $2"""
     # await connect.execute(query, date_update, old_time, new_time)
 

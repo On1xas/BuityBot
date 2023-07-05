@@ -201,7 +201,7 @@ async def FSM_create_sign_date_cb(callback: CallbackQuery, state: FSMContext):
     # Создаем запись в хранилище Месяц, Год для формирования Calendar
     await state.update_data(month=datetime.datetime.now().month, year=datetime.datetime.now().year)
     # Создаем запись в хранилище список выбранных кнопок в памяти для MultiSelect
-    await state.update_data(times=[])
+    await state.update_data(select_times=[])
     await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_date"], reply_markup=kb_calendar())
     await state.set_state(FSM_Master_create_sign.date)
 
@@ -224,15 +224,12 @@ async def date_calendar(callback: CallbackQuery, state: FSMContext, database: Re
 
         # Выгружаем список шаблонов мастера
         master_templates = await database.get_template_opensign(callback.from_user.id)
-        print("DB CALL TRUE")
         print(master_templates)
-        main_template = {}
         for templates, params in master_templates.items():
-            for key, value in params:
-                if value['is_main']:
-                    main_template = value
+                if params['is_main']:
+                    await state.update_data(main_template=params)
                     break
-        await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_time"], reply_markup=await kb_multiselect_start_create_opensign(main_template=main_template, state=state))
+        await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_time"], reply_markup=await kb_multiselect_start_create_opensign(state=state))
 
 
 
@@ -242,17 +239,17 @@ async def cb_multiselect_time(callback: CallbackQuery, state: FSMContext, databa
     # Выгружаем из памяти хранилище для работы с списком
     storage: dict[str, str | list] = await state.get_data()
     # Проверяем нажатие кнопок, добавляем или убираем выбор.
-    if callback.data not in storage['times']:
-        storage['times'].append(callback.data)
+    if callback.data not in storage['select_times']:
+        storage['select_times'].append(callback.data)
     else:
-        storage['times'].remove(callback.data)
+        storage['select_times'].remove(callback.data)
     # Возвращаем обновленные данные в хранилище
     await state.set_data(storage)
     # Генерируем обновленную клавиатуру
-    text = ", ".join(sorted(list(storage['times'])))
-    await callback.message.edit_text(text=text, reply_markup=await kb_multiselect_master_sign(state=state, database=database))
+    text = ", ".join(sorted(list(storage['select_times'])))
+    await callback.message.edit_text(text=text, reply_markup=await kb_multiselect_start_create_opensign(state=state))
 
-## 
+##
 
 
 
