@@ -9,7 +9,8 @@ from lexicon.lexicon import (LEXICON_KB_ADMIN_MAIN,
                              LEXICON_RU_BUTTON,
                              LEXICON_KB_ADMIN_FSM_CreateSign_edit,
                              LEXICON_TIME_CONST,
-                             LEXICON_RU_MULTI_SELECT_BUTTON)
+                             LEXICON_RU_MULTI_SELECT_BUTTON,
+                             LEXICON_RU_MASTER_TEMPLATE_BUTTON)
 from database.database import RequestDB
 
 
@@ -115,19 +116,30 @@ async def kb_multiselect_start_create_opensign(state: FSMContext):
                 main_button.append(InlineKeyboardButton(text=f"{time}",
                                     callback_data=time))
         kb.row(*main_button, width=8)
-    #Кнопка Ввести время самому
-    kb.row(*[InlineKeyboardButton(text="Ввести время вручную", callback_data='entry_manually')])
+    # Кнопка выбрать время
     kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON["time_selected"],
                                     callback_data="time_selected"), width=1)
+    #Кнопка Ввести время самому
+    kb.row(*[InlineKeyboardButton(text="Ввести время вручную", callback_data='entry_manually')])
+
     # Кнопка выйти в главное меню
     kb.row(*button_back_main_menu())
 
     return kb.as_markup()
 
 
-async def kb_multiselect_templates_create_opensign():
+async def kb_multiselect_templates_create_opensign(templates: dict):
+    kb = InlineKeyboardBuilder()
     #3 Кнопки - Создать шаблон, Удалить шаблон, Изменить шаблон
+    menu_button = [InlineKeyboardButton(text=LEXICON_RU_MASTER_TEMPLATE_BUTTON[key], callback_data=key) for key in LEXICON_RU_MASTER_TEMPLATE_BUTTON]
+    kb.row(*menu_button, width=3)
     #Изменить шаблон по умолчанию
+    kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON['edit_main_template'], callback_data="edit_main_template"), width=1)
+    templates_button = []
+    for key in templates:
+        if templates[key['is_main']] == False:
+            text = key + ",".join(sorted(templates[key]["times"]))
+            templates_button.append(InlineKeyboardButton(text=text, callback_data=templates[key]["callback_key"]))
     #Кнопки - перечень созданных шаблонов
     #Кнопка вернуся в Мультиселект
     #Кнопка вернуть в главное меню

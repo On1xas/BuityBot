@@ -55,8 +55,14 @@ LEXICON_TIME_CONST: dict[str, list[str]] = {
 LEXICON_RU_BUTTON: dict[str,str] = {
     "create_template_time": "Создать шаблон",
     "back_main_menu": "Вернуться в меню администратора",
-    "time_selected": "Выбрать время"
+    "time_selected": "Выбрать время",
+    "edit_main_template": "Измени шаблон по умолчанию"
 }
 LEXICON_RU_MULTI_SELECT_BUTTON = {
     "times_to_sign": ["11:00", "12:00", "13:00", "14:00"]
+}
+LEXICON_RU_MASTER_TEMPLATE_BUTTON: dict[str,str] = {
+    "create_template": "Создать шаблон",
+    "edit_template": "Изменить шаблон",
+    "delete_template": "Удалить шаблон"
 }

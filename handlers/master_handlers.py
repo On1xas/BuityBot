@@ -232,6 +232,18 @@ async def date_calendar(callback: CallbackQuery, state: FSMContext, database: Re
         await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_time"], reply_markup=await kb_multiselect_start_create_opensign(state=state))
 
 
+## Обработка нажатия на кнопку Использовать шаблон. FSM -> Template
+@master_router.callback_query(lambda callback: callback.data == "use_template", StateFilter(FSM_Master_create_sign.time))
+async def menu_template_create_opensign(callback: CallbackQuery, state: FSMContext, database: RequestDB):
+    # Переводим Мастера в состояние меню Использования шаблона
+    await state.set_state(FSM_Master_create_sign.template)
+
+    await callback.message.edit_text(text="Выбери шаблон", reply_markup=await kb_multiselect_start_create_opensign(state=state))
+
+
+
+
+
 
 ## Widget MultiSelect. Обработка выбора времени.
 @master_router.callback_query(MultiSelectFilter(), StateFilter(FSM_Master_create_sign.time))
@@ -261,7 +273,7 @@ async def finish_multi_select(callback: CallbackQuery, state: FSMContext, databa
     storage = await state.get_data()
     if "finish" not in storage:
         await state.update_data(finish=True)
-    select_time_text = ", ".join(sorted(list(storage['times'])))
+    select_time_text = ", ".join(sorted(list(storage['select_times'])))
     await state.set_state(FSM_Master_create_sign.finish)
     await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_finish"].format(date=storage['date'], times=select_time_text), reply_markup=create_kb_fsm_CreateSign_edit())
 

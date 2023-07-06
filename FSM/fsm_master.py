@@ -1,10 +1,14 @@
-
 from aiogram.fsm.state import State, StatesGroup
 
 
 class FSM_Master_create_sign(StatesGroup):
     date = State()
     time = State()
+    template = State()
+    create_template = State()
+    edit_template = State()
+    delete_template = State()
+    edit_main_template = State()
     finish = State()
 
 
