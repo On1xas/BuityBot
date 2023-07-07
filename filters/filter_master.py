@@ -44,10 +44,7 @@ class EntryNameTemplateFilter(BaseFilter):
 
 
 # Фильтр ввода времени нового шаблона
-class EntrytimeTemplateFilter(BaseFilter):
+class EntryTimeTemplateFilter(BaseFilter):
     async def __call__(self, message: Message) -> bool:
         times = message.text.split(",")
-        print("New times", times)
-        result = [True if time[:2].isdigit() and 0 <= int(time[:2]) < 24 and time[2] == ":" and time[3:].isdigit() and 0 <= int(time[3:]) < 60 else False for time in times]
-        print(result)
-        return all(result)
+        return all([True if time[:2].isdigit() and 0 <= int(time[:2]) < 24 and time[2] == ":" and time[3:].isdigit() and 0 <= int(time[3:]) < 60 else False for time in times])
