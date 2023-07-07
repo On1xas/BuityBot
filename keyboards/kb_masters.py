@@ -105,7 +105,7 @@ async def kb_multiselect_start_create_opensign(state: FSMContext):
     print(selected)
     main_button = []
     #Кнопка использовать шаблоны
-    kb.row(*[InlineKeyboardButton(text="Использовать шаблон", callback_data='use_template')])
+    kb.row(*[InlineKeyboardButton(text=LEXICON_RU_BUTTON["use_template"], callback_data='use_template')])
     #Кнопки из стандартного шаблона
     if selected['main_template']:
         for time in sorted(selected['main_template']['times']):
@@ -136,14 +136,18 @@ async def kb_multiselect_templates_create_opensign(templates: dict):
     #Изменить шаблон по умолчанию
     kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON['edit_main_template'], callback_data="edit_main_template"), width=1)
     templates_button = []
-    for key in templates:
-        if templates[key['is_main']] == False:
-            text = key + ",".join(sorted(templates[key]["times"]))
-            templates_button.append(InlineKeyboardButton(text=text, callback_data=templates[key]["callback_key"]))
     #Кнопки - перечень созданных шаблонов
+    for key in templates:
+        if not templates[key]['is_main']:
+            text = key + "  -  " + ",".join(sorted(templates[key]["times"]))
+            templates_button.append(InlineKeyboardButton(text=text, callback_data=templates[key]["callback_key"]))
+    kb.row(*templates_button, width=1)
     #Кнопка вернуся в Мультиселект
+    kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON["back_time_menu"], callback_data="back_time_menu"), width=1)
     #Кнопка вернуть в главное меню
-    pass
+    kb.row(*button_back_main_menu())
+
+    return kb.as_markup()
 
 async def kb_multiselect_create_templates_create_opensign():
     # ЗАПРОС НА ВВЕДЕНИЕ ШАБЛОНА текстом

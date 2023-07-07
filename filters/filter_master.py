@@ -33,3 +33,21 @@ class EntryTimeFilter(BaseFilter):
         if message.text[:2].isdigit() and 0 <= int(message.text[:2]) < 24 and message.text[2] == ":" and message.text[3:].isdigit() and 0 <= int(message.text[3:]) < 60:
             return True
         return False
+
+
+# Фильтр ввода имени нового шаблона
+class EntryNameTemplateFilter(BaseFilter):
+    async def __call__(self, message: Message) -> bool:
+        if len(message.text) > 15:
+            return False
+        return True
+
+
+# Фильтр ввода времени нового шаблона
+class EntrytimeTemplateFilter(BaseFilter):
+    async def __call__(self, message: Message) -> bool:
+        times = message.text.split(",")
+        print("New times", times)
+        result = [True if time[:2].isdigit() and 0 <= int(time[:2]) < 24 and time[2] == ":" and time[3:].isdigit() and 0 <= int(time[3:]) < 60 else False for time in times]
+        print(result)
+        return all(result)

@@ -1,6 +1,6 @@
 import datetime
 
-from aiogram import Router
+from aiogram import Router, Bot
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.state import State, default_state
@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 
 from database.database import RequestDB
 from lexicon.lexicon import LEXICON_RU
-from filters.filter_master import MasterCallbackFilters, MasterMessageFilters, SelectFilter, EntryTimeFilter
+from filters.filter_master import MasterCallbackFilters, MasterMessageFilters, SelectFilter, EntryTimeFilter, EntryNameTemplateFilter, EntrytimeTemplateFilter
 from filters.filter_calendar import FilterCalendar, FilterDateCalendar
 from filters.filter_multiselect import MultiSelectFilter
 from FSM.fsm_master import FSM_Master_create_sign, FSM_Master_edit_opensign, FSM_Master_drop_opensign
@@ -18,7 +18,8 @@ from keyboards.kb_masters import (create_kb_master_main,
                                   kb_multiselect_master_sign,
                                   kb_select_master_edit_opensign,
                                   kb_multiselect_delete_master_sign,
-                                  kb_multiselect_start_create_opensign)
+                                  kb_multiselect_start_create_opensign,
+                                  kb_multiselect_templates_create_opensign)
 from keyboards.keyboards import kb_calendar
 
 master_router: Router = Router()
@@ -224,11 +225,12 @@ async def date_calendar(callback: CallbackQuery, state: FSMContext, database: Re
 
         # Выгружаем список шаблонов мастера
         master_templates = await database.get_template_opensign(callback.from_user.id)
-        print(master_templates)
+        print("DB - ", master_templates)
+        await state.update_data(master_templates=master_templates)
         for templates, params in master_templates.items():
-                if params['is_main']:
-                    await state.update_data(main_template=params)
-                    break
+            if params['is_main']:
+                await state.update_data(main_template=params)
+                break
         await callback.message.edit_text(text=LEXICON_RU["FSM_MasterCreateSign_time"], reply_markup=await kb_multiselect_start_create_opensign(state=state))
 
 
@@ -237,8 +239,86 @@ async def date_calendar(callback: CallbackQuery, state: FSMContext, database: Re
 async def menu_template_create_opensign(callback: CallbackQuery, state: FSMContext, database: RequestDB):
     # Переводим Мастера в состояние меню Использования шаблона
     await state.set_state(FSM_Master_create_sign.template)
+    storage = await state.get_data()
+    await callback.message.edit_text(text="Выбери шаблон", reply_markup=await kb_multiselect_templates_create_opensign(templates=storage['master_templates']))
 
+## Обработка нажатия вернуться в меню выбора времени FSM template - FSM time
+@master_router.callback_query(lambda callback: callback.data == "back_time_menu", StateFilter(FSM_Master_create_sign.template))
+async def menu_template_backtime_create_opensign(callback: CallbackQuery, state: FSMContext, database: RequestDB):
+    # Переводим Мастера в состояние меню Использования шаблона
+    await state.set_state(FSM_Master_create_sign.time)
     await callback.message.edit_text(text="Выбери шаблон", reply_markup=await kb_multiselect_start_create_opensign(state=state))
+
+
+
+## Обработка нажатия Создать шаблон FSM template - FSM create_name_template
+@master_router.callback_query(lambda callback: callback.data == "create_template", StateFilter(FSM_Master_create_sign.template))
+async def menu_template_create_template_opensign(callback: CallbackQuery, state: FSMContext, database: RequestDB):
+    # Переводим Мастера в состояние Создания шаблона - Ввод имени
+    await state.set_state(FSM_Master_create_sign.create_name_template)
+    await state.update_data(chat_id=callback.message.chat.id, message_id = callback.message.message_id)
+    await callback.message.edit_text(text="Введите название шаблона, не более 15 символов", reply_markup=kb_master_back_main_menu())
+
+
+## Обработка корректного ввода названия шаблона Создать шаблон FSM template - FSM create_name)template
+@master_router.message(EntryNameTemplateFilter(), StateFilter( FSM_Master_create_sign.create_name_template))
+async def menu_template_create_name_template_opensign(message: Message, state: FSMContext, database: RequestDB, bot: Bot):
+    await state.update_data(name_new_template=message.text)
+    # Переводим Мастера в состояние Создания шаблона - Ввод имени
+    await state.set_state(FSM_Master_create_sign.create_time_template)
+    storage = await state.get_data()
+    await bot.delete_message(chat_id=storage['chat_id'], message_id=storage['message_id'])
+    await state.set_state(FSM_Master_create_sign.create_time_template)
+    bot_message = await message.answer(text="Введите время по шаблону", reply_markup=kb_master_back_main_menu())
+    await state.update_data(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
+
+
+## Обработка неверного ввода названия шаблона, более 15 символов Создать шаблон FSM template - FSM create_name)template
+@master_router.message(StateFilter(FSM_Master_create_sign.create_name_template))
+async def menu_template_create_bad_name_template_opensign(message: Message, state: FSMContext, database: RequestDB, bot: Bot):
+    storage = await state.get_data()
+    await bot.delete_message(chat_id=storage['chat_id'], message_id=storage['message_id'])
+    bot_message = await message.answer(text="Вы ввели более 15 символов", reply_markup=kb_master_back_main_menu())
+    await state.update_data(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
+
+
+## Обработка корректного ввода шаблона времени Создать шаблон FSM template - FSM create_name_template
+@master_router.message(EntrytimeTemplateFilter(), StateFilter( FSM_Master_create_sign.create_time_template))
+async def menu_template_create_bad_time_template_opensign(message: Message, state: FSMContext, database: RequestDB, bot: Bot):
+    await state.update_data(time_new_template=message.text.split(","))
+    # Переводим Мастера в состояние Создания шаблона - Ввод имени
+    await state.set_state(FSM_Master_create_sign.time)
+    storage = await state.get_data()
+    await bot.delete_message(chat_id=storage['chat_id'], message_id=storage['message_id'])
+    bot_message = await message.answer(text="OK", reply_markup=await kb_multiselect_start_create_opensign(state=state))
+    await state.update_data(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
+
+## Обработка неверного ввода шаблона времени Создать шаблон FSM template - FSM create_name_template
+@master_router.message(StateFilter(FSM_Master_create_sign.create_time_template))
+async def menu_template_create_time_template_opensign(message: Message, state: FSMContext, database: RequestDB, bot: Bot):
+    storage = await state.get_data()
+    await bot.delete_message(chat_id=storage['chat_id'], message_id=storage['message_id'])
+    bot_message = await message.answer(text="BAD", reply_markup=kb_master_back_main_menu())
+    await state.update_data(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

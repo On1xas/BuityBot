@@ -52,16 +52,18 @@ LEXICON_TIME_CONST: dict[str, list[str]] = {
     "standart_time": ["11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"]
 }
 
-LEXICON_RU_BUTTON: dict[str,str] = {
+LEXICON_RU_BUTTON: dict[str, str] = {
     "create_template_time": "Создать шаблон",
-    "back_main_menu": "Вернуться в меню администратора",
+    "use_template": "Использовать шаблон",
+    "back_main_menu": "Вернуться в главное меню",
+    "back_time_menu": "Вернуться в меню выбора времени",
     "time_selected": "Выбрать время",
-    "edit_main_template": "Измени шаблон по умолчанию"
+    "edit_main_template": "Изменить шаблон по умолчанию"
 }
 LEXICON_RU_MULTI_SELECT_BUTTON = {
     "times_to_sign": ["11:00", "12:00", "13:00", "14:00"]
 }
-LEXICON_RU_MASTER_TEMPLATE_BUTTON: dict[str,str] = {
+LEXICON_RU_MASTER_TEMPLATE_BUTTON: dict[str, str] = {
     "create_template": "Создать шаблон",
     "edit_template": "Изменить шаблон",
     "delete_template": "Удалить шаблон"
