@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 
 from database.database import RequestDB
 from lexicon.lexicon import LEXICON_RU
-from filters.filter_master import MasterCallbackFilters, MasterMessageFilters, SelectFilter, EntryTimeFilter, EntryNameTemplateFilter, EntrytimeTemplateFilter
+from filters.filter_master import MasterCallbackFilters, MasterMessageFilters, SelectFilter, EntryTimeFilter, EntryNameTemplateFilter, EntryTimeTemplateFilter
 from filters.filter_calendar import FilterCalendar, FilterDateCalendar
 from filters.filter_multiselect import MultiSelectFilter
 from FSM.fsm_master import FSM_Master_create_sign, FSM_Master_edit_opensign, FSM_Master_drop_opensign
@@ -283,7 +283,7 @@ async def menu_template_create_bad_name_template_opensign(message: Message, stat
 
 
 ## Обработка корректного ввода шаблона времени Создать шаблон FSM template - FSM create_name_template
-@master_router.message(EntrytimeTemplateFilter(), StateFilter( FSM_Master_create_sign.create_time_template))
+@master_router.message(EntryTimeTemplateFilter(), StateFilter( FSM_Master_create_sign.create_time_template))
 async def menu_template_create_bad_time_template_opensign(message: Message, state: FSMContext, database: RequestDB, bot: Bot):
     await state.update_data(time_new_template=message.text.split(","))
     # Переводим Мастера в состояние Создания шаблона - Ввод имени
