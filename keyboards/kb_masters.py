@@ -149,6 +149,13 @@ async def kb_multiselect_templates_create_opensign(templates: dict):
 
     return kb.as_markup()
 
+# Клавиатура подтверждения создания шаблона
+def kb_create_finish_template_create_opensign():
+    kb = InlineKeyboardBuilder()
+    kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON['create_template'], callback_data='create_template'))
+    kb.row(*button_back_main_menu())
+    return kb.as_markup()
+
 async def kb_multiselect_create_templates_create_opensign():
     # ЗАПРОС НА ВВЕДЕНИЕ ШАБЛОНА текстом
     #Кнопка вернуся в меню шаблонов

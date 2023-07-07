@@ -53,7 +53,7 @@ LEXICON_TIME_CONST: dict[str, list[str]] = {
 }
 
 LEXICON_RU_BUTTON: dict[str, str] = {
-    "create_template_time": "Создать шаблон",
+    "create_template": "Создать шаблон",
     "use_template": "Использовать шаблон",
     "back_main_menu": "Вернуться в главное меню",
     "back_time_menu": "Вернуться в меню выбора времени",

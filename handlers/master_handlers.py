@@ -19,7 +19,8 @@ from keyboards.kb_masters import (create_kb_master_main,
                                   kb_select_master_edit_opensign,
                                   kb_multiselect_delete_master_sign,
                                   kb_multiselect_start_create_opensign,
-                                  kb_multiselect_templates_create_opensign)
+                                  kb_multiselect_templates_create_opensign,
+                                  kb_create_finish_template_create_opensign)
 from keyboards.keyboards import kb_calendar
 
 master_router: Router = Router()
@@ -225,7 +226,6 @@ async def date_calendar(callback: CallbackQuery, state: FSMContext, database: Re
 
         # Выгружаем список шаблонов мастера
         master_templates = await database.get_template_opensign(callback.from_user.id)
-        print("DB - ", master_templates)
         await state.update_data(master_templates=master_templates)
         for templates, params in master_templates.items():
             if params['is_main']:
@@ -287,10 +287,11 @@ async def menu_template_create_bad_name_template_opensign(message: Message, stat
 async def menu_template_create_bad_time_template_opensign(message: Message, state: FSMContext, database: RequestDB, bot: Bot):
     await state.update_data(time_new_template=message.text.split(","))
     # Переводим Мастера в состояние Создания шаблона - Ввод имени
-    await state.set_state(FSM_Master_create_sign.time)
+    await state.set_state(FSM_Master_create_sign.create_finish_template)
     storage = await state.get_data()
     await bot.delete_message(chat_id=storage['chat_id'], message_id=storage['message_id'])
-    bot_message = await message.answer(text="OK", reply_markup=await kb_multiselect_start_create_opensign(state=state))
+    text = f"Подтвердите создане шаблона\n Название шаблона: {storage['name_new_template']}\n Время: {storage['time_new_template']}"
+    bot_message = await message.answer(text=text, reply_markup=kb_create_finish_template_create_opensign())
     await state.update_data(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
 
 ## Обработка неверного ввода шаблона времени Создать шаблон FSM template - FSM create_name_template
@@ -302,6 +303,15 @@ async def menu_template_create_time_template_opensign(message: Message, state: F
     await state.update_data(chat_id=bot_message.chat.id, message_id=bot_message.message_id)
 
 
+## Обработка подтверждения создания шаблона Создать шаблон FSM template - FSM create_name_template
+@master_router.callback_query(StateFilter(FSM_Master_create_sign.create_finish_template))
+async def menu_template_create_time_template_opensign(callback: CallbackQuery, state: FSMContext, database: RequestDB, bot: Bot):
+    storage = await state.get_data()
+    await state.set_state(FSM_Master_create_sign.template)
+    master_templates = await database.get_template_opensign(callback.from_user.id)
+    await state.update_data(master_templates=master_templates)
+    text = "Все успешно создалось выберай уже время"
+    await callback.message.edit_text(text=text, reply_markup=await kb_multiselect_templates_create_opensign(templates=storage['master_templates']))
 
 
 
@@ -385,6 +395,6 @@ async def FSM_create_sign_edit_status_cb(callback: CallbackQuery, state: FSMCont
 async def FSM_create_sign_time_cb(callback: CallbackQuery, state: FSMContext, database: RequestDB):
     storage = await state.get_data()
     print(storage)
-    await database.set_opensign(storage['date'], storage['times'])
+    await database.set_opensign(storage['date'], storage['select_times'])
     await state.clear()
     await callback.message.edit_text(text="Запись создана!", reply_markup=create_kb_master_main())

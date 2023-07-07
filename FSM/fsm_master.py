@@ -8,6 +8,7 @@ class FSM_Master_create_sign(StatesGroup):
     create_template = State()
     create_name_template = State()
     create_time_template = State()
+    create_finish_template = State()
     edit_template = State()
     delete_template = State()
     edit_main_template = State()
