@@ -101,8 +101,9 @@ class RequestDB:
 
         await self.connect.execute(query, date, time)
 
-    async def create_template_opensign(self):
-        pass
+    async def create_template_opensign(self, user_id, name_template, time_template):
+        query = """INSERT INTO master_templates_sign (user_id, name_template, is_main_template, callback_key, time_template) VALUES ($1,$2,$3,$4,$5)"""
+        await self.connect.execute(query, user_id, name_template, False , "edit_template_", time_template)
 
     async def update_template_opensign(self):
         pass

@@ -68,3 +68,8 @@ LEXICON_RU_MASTER_TEMPLATE_BUTTON: dict[str, str] = {
     "edit_template": "Изменить шаблон",
     "delete_template": "Удалить шаблон"
 }
+LEXICON_KB_CREATE_TEMPLATE: dict[str, str] = {
+    "edit_name": "Изменить название",
+    "edit_time": "Изменить время",
+    "save": "Создать запись"
+}

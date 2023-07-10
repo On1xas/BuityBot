@@ -10,7 +10,8 @@ from lexicon.lexicon import (LEXICON_KB_ADMIN_MAIN,
                              LEXICON_KB_ADMIN_FSM_CreateSign_edit,
                              LEXICON_TIME_CONST,
                              LEXICON_RU_MULTI_SELECT_BUTTON,
-                             LEXICON_RU_MASTER_TEMPLATE_BUTTON)
+                             LEXICON_RU_MASTER_TEMPLATE_BUTTON,
+                             LEXICON_KB_CREATE_TEMPLATE)
 from database.database import RequestDB
 
 
@@ -138,14 +139,14 @@ async def kb_multiselect_templates_create_opensign(templates: dict):
     templates_button = []
     #Кнопки - перечень созданных шаблонов
     for key in templates:
-        if not templates[key]['is_main']:
-            text = key + "  -  " + ",".join(sorted(templates[key]["times"]))
-            templates_button.append(InlineKeyboardButton(text=text, callback_data=templates[key]["callback_key"]))
+        text = key + "  -  " + ",".join(sorted(templates[key]["times"]))
+        templates_button.append(InlineKeyboardButton(text=text, callback_data=templates[key]["callback_key"]))
     kb.row(*templates_button, width=1)
     #Кнопка вернуся в Мультиселект
     kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON["back_time_menu"], callback_data="back_time_menu"), width=1)
     #Кнопка вернуть в главное меню
     kb.row(*button_back_main_menu())
+    print("KEYBOARD STORY", " - ", templates)
 
     return kb.as_markup()
 
@@ -153,6 +154,13 @@ async def kb_multiselect_templates_create_opensign(templates: dict):
 def kb_create_finish_template_create_opensign():
     kb = InlineKeyboardBuilder()
     kb.row(InlineKeyboardButton(text=LEXICON_RU_BUTTON['create_template'], callback_data='create_template'))
+    kb.row(*button_back_main_menu())
+    return kb.as_markup()
+
+
+def kb_create_template_edit_nametime():
+    kb = InlineKeyboardBuilder()
+    kb.row(*[InlineKeyboardButton(text=LEXICON_KB_CREATE_TEMPLATE[key], callback_data=key)for key in LEXICON_KB_CREATE_TEMPLATE], width=2)
     kb.row(*button_back_main_menu())
     return kb.as_markup()
 
