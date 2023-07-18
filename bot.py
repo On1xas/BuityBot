@@ -17,7 +17,7 @@ from middleware.db_mdw import DbSessionMiddleware
 from lexicon.translator import translator_hub
 from database.base import async_create_engine
 from handlers import registred_user_commands, registred_master_commands, registred_admin_commands
-from handlers.user_handlers import start_user_dialog
+from handlers.user_handlers import user_dialog
 
 async def start_app():
 
@@ -44,6 +44,7 @@ async def start_app():
     )
     # Регистрируем роутеры
     # Регистрируем middleware и передаем в него конфиг и пул к для подключения к БД
+    dp.callback_query.middleware(SessionMiddleware())
     dp.update.middleware(RoleMiddleware(
         admins=config.tg_bot.admins,
         masters=config.tg_bot.masters)
@@ -57,7 +58,7 @@ async def start_app():
     registred_user_commands(dp)
     registred_master_commands(dp)
     registred_admin_commands(dp)
-    dp.include_router(start_user_dialog)
+    dp.include_router(user_dialog)
     setup_dialogs(dp)
 
 
@@ -68,7 +69,7 @@ async def start_app():
     dp.startup.register(set_main_menu)
 
     # Передаем БОТа в Диспетчер
-    await dp.start_polling(bot, translator=translator_hub)
+    await dp.start_polling(bot, translator=translator_hub, allowed_updates=[])
 
 if __name__ == "__main__":
     asyncio.run(start_app())

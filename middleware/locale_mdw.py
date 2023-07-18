@@ -14,5 +14,7 @@ class TranslatorRunnerMiddleware(BaseMiddleware):
     ) -> Any:
         hub: TranslatorHub = data.get('translator')
         # There you can ask your database for locale
-        data['i18n'] = hub.get_translator_by_locale(locale=data['event_from_user'].language_code)
+        data['i18n'] = hub.get_translator_by_locale(locale="en")
         return await handler(event, data)
+
+      #data['event_from_user'].language_code
