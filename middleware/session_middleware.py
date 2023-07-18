@@ -20,7 +20,7 @@ class SessionMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any]
     ) -> Any:
-        if data['event_from_user'].id in self.config.tg_bot.admin:
+        if data['event_from_user'].id in self.config.tg_bot.admins:
             data["config"] = self.config
         async with self.connector.acquire() as connection:
             data["database"] = RequestDB(connection=connection)
