@@ -31,21 +31,25 @@ async def master_entry_time_manually(message: Message, message_input: MessageInp
         await message.answer("Ввел хуйню")
 
 ###===============Clikers======================###
+
+async def to_main_menu(callback: CallbackQuery, button: Button, manager: DialogManager):
+    await manager.done()
+    await manager.start(Master_Menu.main, mode=StartMode.RESET_STACK, show_mode=ShowMode.AUTO)
+
 async def to_create_sign_entry_date(callback: CallbackQuery, button: Button, manager: DialogManager):
     await manager.done()
     await manager.start(state=Master_Create_Sign.entry_date, mode=StartMode.NORMAL)
-    if manager.dialog_data:
-        print("Empty data")
-    else:
-        print("Create Dialog Data", manager.dialog_data)
-        manager.dialog_data["date"] = manager.dialog_data.get("date", date.today())
-        manager.dialog_data["status_state"] = manager.dialog_data.get("status_state", None)
-        print(manager.dialog_data)
+    print("Create Dialog Data", manager.dialog_data)
+    manager.dialog_data["date"] = manager.dialog_data.get("date", date.today())
+    manager.dialog_data["status_state"] = manager.dialog_data.get("status_state", None)
+    print(manager.dialog_data)
 
 
 async def to_create_sign_entry_time(callback: CallbackQuery, button: Button, manager: DialogManager):
     await manager.switch_to(state=Master_Create_Sign.entry_time)
 
+async def to_create_sign_change_entry_date(callback: CallbackQuery, button: Button, manager: DialogManager):
+    await manager.switch_to(state=Master_Create_Sign.entry_date)
 
 async def on_date_selected(callback: CallbackQuery, widget,
                            manager: DialogManager, selected_date: date):
@@ -105,7 +109,7 @@ create_sign = [
             Button(Const("Шаблон 1"),id="template_1"),
             Button(Const("Шаблон 2"),id="template_2"),
         ),
-        Button(Const("Вернуться в главное меню"), id="back_main_menu"),
+        Button(Const("Вернуться в главное меню"), id="back_main_menu", on_click=to_main_menu),
         state=Master_Create_Sign.menu_templates
     ),
     Window(
@@ -116,11 +120,11 @@ create_sign = [
     Window(
         Const("Все заебись"),
         Row(
-            Button(Const("Изменить Дату"), id="change_date", on_click=to_create_sign_entry_date),
-            Button(Const("Изменить Время"), id="change_date", on_click=to_create_sign_entry_time)
+            Button(Const("Изменить Дату"), id="change_date", on_click=to_create_sign_change_entry_date),
+            Button(Const("Изменить Время"), id="change_time", on_click=to_create_sign_entry_time)
         ),
         Button(Const("Сохранить запись"), id="save_sign"),
-        Button(Const("Вернуться в главное меню"), id="back_main_menu"),
+        Button(Const("Вернуться в главное меню"), id="back_main_menu", on_click=to_main_menu),
         state=Master_Create_Sign.confim_entries
     )
 
