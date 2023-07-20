@@ -22,9 +22,11 @@ async def master_entry_time_manually(message: Message, message_input: MessageInp
         return all([True if len(time) == 5 and time[:2].isdigit() and 0 <= int(time[:2]) < 24 and time[2] == ":" and time[3:].isdigit() and 0 <= int(time[3:]) < 60 else False for time in times])
     if await check_times_sign_input(message=message.text):
         print("In Handler")
-        dialog_manager.dialog_data.get("times", message.text.split(","))
-        await dialog_manager.switch_to(Master_Create_Sign.confim_entries)
+
+        dialog_manager.dialog_data["times"]=dialog_manager.dialog_data.get("times", message.text.split(","))
         dialog_manager.dialog_data["status_state"] = "confim"
+        print("Time Select", dialog_manager.dialog_data)
+        await dialog_manager.switch_to(Master_Create_Sign.confim_entries)
     else:
         await message.answer("Ввел хуйню")
 
@@ -32,7 +34,14 @@ async def master_entry_time_manually(message: Message, message_input: MessageInp
 async def to_create_sign_entry_date(callback: CallbackQuery, button: Button, manager: DialogManager):
     await manager.done()
     await manager.start(state=Master_Create_Sign.entry_date, mode=StartMode.NORMAL)
-    print(manager.middleware_data)
+    if manager.dialog_data:
+        print("Empty data")
+    else:
+        print("Create Dialog Data", manager.dialog_data)
+        manager.dialog_data["date"] = manager.dialog_data.get("date", date.today())
+        manager.dialog_data["status_state"] = manager.dialog_data.get("status_state", None)
+        print(manager.dialog_data)
+
 
 async def to_create_sign_entry_time(callback: CallbackQuery, button: Button, manager: DialogManager):
     await manager.switch_to(state=Master_Create_Sign.entry_time)
@@ -44,8 +53,9 @@ async def on_date_selected(callback: CallbackQuery, widget,
     if selected_date < date.today():
         await callback.answer(text=f"{str(selected_date)} - уже прошла, выберите актуальную")
     else:
+        manager.dialog_data["date"]=selected_date
+        print("Date Select", manager.dialog_data)
         if manager.dialog_data["status_state"] == "confim":
-            manager.dialog_data["date"]=selected_date
             await manager.switch_to(Master_Create_Sign.confim_entries)
         else:
             manager.dialog_data["date"]=selected_date
@@ -53,9 +63,7 @@ async def on_date_selected(callback: CallbackQuery, widget,
 
 ###===============Getters======================###
 async def get_data(dialog_manager: DialogManager, **kwargs):
-    dialog_manager.dialog_data.get("date", date.today())
-    dialog_manager.dialog_data.get("status_state", None)
-    print(dialog_manager.dialog_data)
+
     return dialog_manager.dialog_data
 
 ###===============When======================###
