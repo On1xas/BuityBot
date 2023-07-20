@@ -18,6 +18,7 @@ from lexicon.translator import translator_hub
 from database.base import async_create_engine
 from handlers import registred_user_commands, registred_master_commands, registred_admin_commands
 from handlers.user_handlers import user_dialog
+from handlers.master_dialogs import master_dialog, master_create_sign_dialog
 
 async def start_app():
 
@@ -55,10 +56,13 @@ async def start_app():
     # dp.update.outer_middleware(SessionMiddleware(config=config, connector=create_pool))
 
 
-    registred_user_commands(dp)
+
     registred_master_commands(dp)
     registred_admin_commands(dp)
+    registred_user_commands(dp)
     dp.include_router(user_dialog)
+    dp.include_router(master_dialog)
+    dp.include_router(master_create_sign_dialog)
     setup_dialogs(dp)
 
 

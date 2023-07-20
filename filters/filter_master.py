@@ -2,7 +2,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import CallbackQuery, Message
 
 from config.config import Config
-
+from config.roles import Roles
 
 # Фильтр Callback проверки ID юзера с списком ID мастеров
 class MasterCallbackFilters(BaseFilter):
@@ -16,8 +16,11 @@ class MasterCallbackFilters(BaseFilter):
 class MasterMessageFilters(BaseFilter):
     is_admin: bool = True
 
-    async def __call__(self, message: Message, config: Config) -> bool:
-        return message.from_user.id in config.tg_bot.admins
+    async def __call__(self, message: Message, role: Roles) -> bool:
+        print(role)
+        if role == Roles.ADMIN or role == Roles.MASTER:
+            return True
+        return False
 
 
 # Фильтр выбор времени в Edit_OpenSign

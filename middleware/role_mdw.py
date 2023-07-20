@@ -19,11 +19,13 @@ class RoleMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any]
     ) -> Any:
-        print(event)
         if data['event_from_user'].id in self.admins:
             data["role"] = Roles.ADMIN
+            print("ADmin")
         elif data['event_from_user'].id in self.masters:
             data["role"] = Roles.MASTER
+            print("Master")
         else:
             data["role"] = Roles.USER
+            print("user")
         return await handler(event, data)

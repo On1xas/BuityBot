@@ -16,5 +16,4 @@ class SessionMiddleware(BaseMiddleware):
         event: CallbackQuery,
         data: Dict[str, Any]
     ) -> Any:
-        print(event)
         return await handler(event, data)

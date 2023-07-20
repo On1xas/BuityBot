@@ -3,11 +3,11 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import CommandStart, Command
 from aiogram import Router
 from lexicon.lexicon import LEXICON_RU
-
+import operator
 
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode, ShowMode
-from aiogram_dialog.widgets.kbd import Button, Row
-from aiogram_dialog.widgets.text import Const
+from aiogram_dialog.widgets.kbd import Button, Row, Multiselect
+from aiogram_dialog.widgets.text import Const, Format
 from aiogram.fsm.context import FSMContext
 
 from FSM.user_state import WelcomUser
@@ -16,6 +16,16 @@ from lexicon.runner import runner
 
 user_router: Router = Router()
 
+async def get_multiselect_kb(dialog_manager: DialogManager, **kwargs):
+    return {
+                "fruits": [
+            ("Apple", 1),
+            ("Pear", 2),
+            ("Orange", 3),
+            ("Banana", 4),
+        ]
+    }
+
 async def to_second(callback: CallbackQuery, button: Button,
                     manager: DialogManager):
     print(manager.start_data)
@@ -23,12 +33,26 @@ async def to_second(callback: CallbackQuery, button: Button,
     print(await state.get_state())
     await manager.switch_to(WelcomUser.end)
 
+async def to_multi(callback: CallbackQuery, button: Button,
+                    manager: DialogManager):
+    await manager.switch_to(WelcomUser.multi)
+
 start_user_window = Window(
     FluentText(runner.welcome()),
     Button(Const("Useless button"), id="nothing", on_click=to_second),
     state=WelcomUser.start
 )
-
+multi_user_window = Window(
+    FluentText(runner.welcome()),
+    Multiselect(
+    Format("✓ {item[0]}"),  # E.g `✓ Apple`
+    Format("{item[0]}"),
+    id="m_fruits",
+    item_id_getter=operator.itemgetter(1),
+    items="fruits"),
+    getter=get_multiselect_kb,
+    state=WelcomUser.multi
+)
 
 
 async def start(message: Message, dialog_manager: DialogManager, state: FSMContext):
@@ -41,7 +65,7 @@ end_user_window = Window(
     FluentText(runner.end()),
     Row(
         Button(Const("Stop bot"), id="stop"),
-        Button(Const("Continue"), id="continue")
+        Button(Const("Continue"), id="continue", on_click=to_multi)
     ),
     state=WelcomUser.end
 )
@@ -51,7 +75,7 @@ async def end(callback: CallbackQuery, dialog_manager: DialogManager):
 
 
 
-user_dialog = Dialog(start_user_window, end_user_window)
+user_dialog = Dialog(start_user_window, end_user_window, multi_user_window)
 
 # @user_router.message(CommandStart())
 # async def start(message: Message):
