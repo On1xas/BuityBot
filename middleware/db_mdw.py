@@ -7,6 +7,7 @@ from aiogram.types import TelegramObject
 
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
+from services.db_service import Master
 
 logger = logging.getLogger(__name__)
 
@@ -24,5 +25,5 @@ class DbSessionMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         async with self.sessionmaker().begin() as session:
-            data["session"] = session
+            data["session"] = Master(session=session)
             return await handler(event, data)

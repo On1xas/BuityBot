@@ -7,7 +7,7 @@ from aiogram.types import Message, CallbackQuery
 
 
 from FSM.master_state import Master_Create_Sign, Master_Menu
-
+from services.db_service import Master
 ###===============Handlers======================###
 async def master_start(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(Master_Menu.main, show_mode=StartMode.RESET_STACK)
