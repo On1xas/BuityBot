@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 #  Соединение с базой данных
 class DbSessionMiddleware(BaseMiddleware):
-    def __init__(self, sessionmaker: async_sessionmaker):
+    def __init__(self, sessionmaker: AsyncSession):
         super().__init__()
         self.sessionmaker: AsyncSession = sessionmaker
 
@@ -24,6 +24,6 @@ class DbSessionMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
-        async with self.sessionmaker().begin() as session:
+        async with self.sessionmaker.begin() as session:
             data["session"] = Master(session=session)
             return await handler(event, data)

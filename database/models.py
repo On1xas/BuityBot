@@ -30,7 +30,7 @@ class Users(Base):
     is_premium: Mapped[bool] = mapped_column(BOOLEAN)
     chat_id: Mapped[int] = mapped_column(Integer, nullable=False)
     chat_type: Mapped[str] = mapped_column(VARCHAR(15))
-    
+
 
 class MasterTemplates(Base):
     __tablename__ = "master_templates"
@@ -51,3 +51,5 @@ class OpenSign(Base):
     date: Mapped[str] = mapped_column(DATE, nullable=False)
     time: Mapped[str] = mapped_column(TIME, nullable=False)
 
+    def toDict(self):
+        pass

@@ -1,7 +1,7 @@
 from datetime import date
 
 from aiogram_dialog import Dialog, DialogManager, StartMode, Window, ShowMode
-from aiogram_dialog.widgets.kbd import Button, Row, Multiselect, Calendar, Column
+from aiogram_dialog.widgets.kbd import Button, Row, Multiselect, Calendar, Column, Group
 from aiogram_dialog.widgets.text import Const, Format
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram.types import Message, CallbackQuery, ContentType
@@ -12,7 +12,7 @@ from services.db_service import Master
 ###===============Handlers======================###
 async def master_start(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(Master_Menu.main, mode=StartMode.RESET_STACK, show_mode=ShowMode.AUTO)
-    
+
 
 async def master_entry_time_manually(message: Message, message_input: MessageInput, dialog_manager: DialogManager):
     async def check_times_sign_input(message: str):
@@ -35,6 +35,9 @@ async def master_entry_time_manually(message: Message, message_input: MessageInp
 async def to_main_menu(callback: CallbackQuery, button: Button, manager: DialogManager):
     await manager.done()
     await manager.start(Master_Menu.main, mode=StartMode.RESET_STACK, show_mode=ShowMode.AUTO)
+
+async def to_check_opensign(callback: CallbackQuery, button: Button, manager: DialogManager):
+    await manager.start(Master_Menu.check_sign, show_mode=ShowMode.AUTO)
 
 async def to_create_sign_entry_date(callback: CallbackQuery, button: Button, manager: DialogManager):
     await manager.done()
@@ -64,28 +67,56 @@ async def on_date_selected(callback: CallbackQuery, widget,
         else:
             manager.dialog_data["date"]=selected_date
             await manager.switch_to(Master_Create_Sign.menu_templates)
+async def to_save_opensign(callback: CallbackQuery, button: Button, manager: DialogManager):
+    print(manager.middleware_data)
+    session: Master = manager.middleware_data['session']
+    await session.set_open_sign(master_id=callback.from_user.id, date=manager.dialog_data['date'], times=manager.dialog_data['times'])
+    await manager.done()
+    await manager.start(Master_Menu.main, mode=StartMode.RESET_STACK, show_mode=ShowMode.AUTO)
 
 ###===============Getters======================###
 async def get_data(dialog_manager: DialogManager, **kwargs):
 
     return dialog_manager.dialog_data
 
+async def getter_opensign(dialog_manager: DialogManager, **kwargs):
+    session: Master = dialog_manager.middleware_data['session']
+    id = dialog_manager.middleware_data['event_from_user'].id
+    result = await session.get_open_sign()
+    text = ""
+    for date, times in result[id].items():
+        t=", ".join(sorted(times))
+        text += f"\n\t\t{date} - {t}"
+    return {"text": text}
+
 ###===============When======================###
 
+###===============Keyboards======================###
+
+kb_main_menu = Group(
+        Row(
+            Button(Const("Создать запись"), id="create_sign", on_click=to_create_sign_entry_date),
+            Button(Const("Изменить запись"), id="edit_sign")
+        ),
+            Row(
+            Button(Const("Проверить запись"), id="check_sign", on_click=to_check_opensign),
+            Button(Const("Удалить запись"), id="delete_sign")
+        ))
 
 ###===============Windows======================###
-master_main_menu = Window(
-    Const("Вы находите в 🎈 главном меню мастера:"),
-    Row(
-        Button(Const("Создать запись"), id="create_sign", on_click=to_create_sign_entry_date),
-        Button(Const("Изменить запись"), id="edit_sign")
-    ),
-    Row(
-        Button(Const("Проверить запись"), id="check_sign"),
-        Button(Const("Удалить запись"), id="delete_sign")
-    ),
-    state=Master_Menu.main
-    )
+master_main_menu = [
+    Window(
+        Const("Вы находите в 🎈 главном меню мастера:"),
+        kb_main_menu,
+        state=Master_Menu.main
+        ),
+    Window(
+        Format("Свободные записи:\n{text}"),
+        kb_main_menu,
+        state=Master_Menu.check_sign,
+        getter=getter_opensign
+        )
+    ]
 
 calendar = Calendar(id='calendar', on_click=on_date_selected)
 
@@ -123,12 +154,12 @@ create_sign = [
             Button(Const("Изменить Дату"), id="change_date", on_click=to_create_sign_change_entry_date),
             Button(Const("Изменить Время"), id="change_time", on_click=to_create_sign_entry_time)
         ),
-        Button(Const("Сохранить запись"), id="save_sign"),
+        Button(Const("Сохранить запись"), id="save_sign", on_click=to_save_opensign),
         Button(Const("Вернуться в главное меню"), id="back_main_menu", on_click=to_main_menu),
         state=Master_Create_Sign.confim_entries
     )
 
 ]
 ###===============Dialog======================###
-master_dialog = Dialog(master_main_menu)
+master_dialog = Dialog(*master_main_menu)
 master_create_sign_dialog = Dialog(*create_sign)

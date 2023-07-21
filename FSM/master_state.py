@@ -3,6 +3,7 @@ from aiogram.fsm.state import StatesGroup, State
 
 class Master_Menu(StatesGroup):
     main = State()
+    check_sign = State()
 
 
 class Master_Create_Sign(StatesGroup):

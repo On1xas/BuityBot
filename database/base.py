@@ -15,10 +15,10 @@ async def async_create_engine(
 ) -> AsyncSession:
     engine = create_async_engine(
         url=f"{driver}://{username}:{password}@{host}:{port}/{database}",
-        echo=False
+        echo=True
     )
-    session = async_sessionmaker(engine, expire_on_commit=False)
-    return session
+    Session = async_sessionmaker(engine, expire_on_commit=False)
+    return Session
 
 class BaseModel:
     pass
