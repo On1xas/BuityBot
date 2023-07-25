@@ -48,3 +48,9 @@ class Master(Db):
             answer[r.master_id][self._date_to_str(r.date)].append(self._time_time_to_str(r.time))
         print("Answer", answer)
         return answer
+
+    async def delete_open_sign(self, date, time):
+        query = delete(OpenSign).where(date=date, time=time)
+        result = await self.session.execute(query)
+        print(result)
+        

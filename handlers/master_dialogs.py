@@ -67,12 +67,20 @@ async def on_date_selected(callback: CallbackQuery, widget,
         else:
             manager.dialog_data["date"]=selected_date
             await manager.switch_to(Master_Create_Sign.menu_templates)
+
+
 async def to_save_opensign(callback: CallbackQuery, button: Button, manager: DialogManager):
     print(manager.middleware_data)
     session: Master = manager.middleware_data['session']
     await session.set_open_sign(master_id=callback.from_user.id, date=manager.dialog_data['date'], times=manager.dialog_data['times'])
     await manager.done()
     await manager.start(Master_Menu.main, mode=StartMode.RESET_STACK, show_mode=ShowMode.AUTO)
+
+
+async def to_delete_opensign(callback: CallbackQuery, button: Button, manager: DialogManager):
+    pass
+    session: Master = manager.middleware_data['session']
+    await manager.switch_to(Master_Menu.delete_sign)
 
 ###===============Getters======================###
 async def get_data(dialog_manager: DialogManager, **kwargs):
@@ -100,7 +108,7 @@ kb_main_menu = Group(
         ),
             Row(
             Button(Const("Проверить запись"), id="check_sign", on_click=to_check_opensign),
-            Button(Const("Удалить запись"), id="delete_sign")
+            Button(Const("Удалить запись"), id="delete_sign", on_click=to_delete_opensign)
         ))
 
 ###===============Windows======================###
@@ -115,7 +123,13 @@ master_main_menu = [
         kb_main_menu,
         state=Master_Menu.check_sign,
         getter=getter_opensign
-        )
+        ),
+    Window(
+        Const("Выбери записи которые хочешь удалить"),
+        Button(Const("Тут будет мульти селект кнопок удаления"), id="select"),
+        Button(Const("Вернуться в главное меню"), id="back_main_menu", on_click=to_main_menu),
+        state=Master_Menu.delete_sign
+    )
     ]
 
 calendar = Calendar(id='calendar', on_click=on_date_selected)
